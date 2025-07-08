@@ -280,7 +280,8 @@ curl "{{ url('/api/telegram/last-message?channel=python') }}"</div>
         <div class="container">
             <p>
                 Built with Laravel {{ app()->version() }} and MadelineProto | 
-                <a href="https://my.telegram.org" target="_blank">Get your API credentials</a>
+                <a href="https://my.telegram.org" target="_blank">Get your API credentials</a> |
+                <a href="https://github.com/ArcInTower/telegram-channel-api" target="_blank">View on GitHub</a>
             </p>
         </div>
     </footer>
