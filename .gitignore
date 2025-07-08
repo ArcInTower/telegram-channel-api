@@ -1,0 +1,62 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# IDE and AI assistants
+.idea/
+.vscode/
+.zed/
+.claude/
+.cursor/
+.copilot/
+*.code-workspace
+
+# MadelineProto session files
+/storage/app/telegram.madeline
+/storage/app/telegram.madeline.*
+/storage/app/*.madeline
+/storage/app/*.madeline.*
+/storage/app/*.ipc
+/storage/app/*.lock
+
+# Custom scripts
+fix-*.sh
+
+# Apache config backups
+*.backup
+*.backup.*
+/etc/
+
+# Database
+/database/database.sqlite
+*.sqlite
+
+# Logs
+/storage/logs/
+*.log
+
+
+# Cache
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
