@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "arcintower/telegram-channel-api",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "REST API for fetching last message IDs from public Telegram channels",
+    "keywords": ["laravel", "telegram", "api", "mtproto", "madelineproto"],
     "license": "MIT",
     "require": {
         "php": "^8.2",
