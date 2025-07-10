@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GetLastMessageRequest;
-use App\Http\Resources\LastMessageResource;
+use App\Http\Resources\V1\LastMessageResource;
 use App\Services\Telegram\MessageService;
 use App\Services\TelegramChannelService;
 use Illuminate\Http\JsonResponse;

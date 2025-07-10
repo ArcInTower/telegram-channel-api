@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,6 +14,7 @@ class LastMessageResource extends JsonResource
 
     /**
      * Transform the resource into an array.
+     * Note: V1 API is deprecated and does not follow JSON:API spec.
      */
     public function toArray(Request $request): array
     {

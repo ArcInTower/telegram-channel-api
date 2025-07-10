@@ -4,10 +4,9 @@ namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V2\GetChannelInfoRequest;
-use App\Http\Responses\Api\V2\ChannelInfoResponse;
+use App\Http\Resources\V2\ChannelInfoResource;
 use App\Http\Responses\Api\V2\ErrorResponse;
 use App\Services\TelegramChannelService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 class ChannelInfoController extends Controller
@@ -19,7 +18,7 @@ class ChannelInfoController extends Controller
     /**
      * Get channel information
      */
-    public function getChannelInfo(GetChannelInfoRequest $request): JsonResponse
+    public function getChannelInfo(GetChannelInfoRequest $request)
     {
         try {
             $channel = $request->getChannel();
@@ -30,10 +29,9 @@ class ChannelInfoController extends Controller
                 return (new ErrorResponse('Channel not found', 404))->toResponse();
             }
 
-            return (new ChannelInfoResponse(
-                $channel,
-                $info,
-            ))->toResponse();
+            return new ChannelInfoResource(array_merge($info, [
+                'channel' => $channel,
+            ]));
 
         } catch (\Exception $e) {
             Log::error('Error in V2 getChannelInfo: ' . $e->getMessage());
