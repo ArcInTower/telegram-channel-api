@@ -40,8 +40,11 @@ Thumbs.db
 /storage/app/*.ipc
 /storage/app/*.lock
 
-# Custom scripts
+# Custom scripts and test files
 fix-*.sh
+test_*.php
+test-*.php
+testing-*.php
 
 # Apache config backups
 *.backup
