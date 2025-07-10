@@ -71,7 +71,7 @@
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Service Container & Dependency Injection</h3>
                     <p>We use Laravel's <a href="https://laravel.com/docs/12.x/container" target="_blank" class="text-blue-600 hover:underline">Service Container</a> for dependency injection:</p>
-                    <pre><code class="language-php php">public function __construct(
+                    <pre><code class="language-php">public function __construct(
     private TelegramChannelService $telegramService,
     private MessageService $messageService,
 ) {}</code></pre>
@@ -80,7 +80,7 @@
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Service Providers</h3>
                     <p>Custom services are registered in <a href="https://laravel.com/docs/12.x/providers" target="_blank" class="text-blue-600 hover:underline">Service Providers</a>:</p>
-                    <pre><code class="language-php php">// app/Providers/TelegramServiceProvider.php
+                    <pre><code class="language-php">// app/Providers/TelegramServiceProvider.php
 $this->app->singleton(TelegramApiInterface::class, function ($app) {
     return new MadelineProtoApiClient();
 });</code></pre>
@@ -89,13 +89,13 @@ $this->app->singleton(TelegramApiInterface::class, function ($app) {
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Route Model Binding</h3>
                     <p>We use <a href="https://laravel.com/docs/12.x/routing#route-model-binding" target="_blank" class="text-blue-600 hover:underline">implicit binding</a> in routes:</p>
-                    <pre><code class="language-php php">Route::get('/channels/{channel}/messages/last-id', ...)</code></pre>
+                    <pre><code class="language-php">Route::get('/channels/{channel}/messages/last-id', ...)</code></pre>
                 </div>
 
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Caching</h3>
                     <p>We use Laravel's <a href="https://laravel.com/docs/12.x/cache" target="_blank" class="text-blue-600 hover:underline">Cache facade</a>:</p>
-                    <pre><code class="language-php php">Cache::put($cacheKey, $data, $ttl);
+                    <pre><code class="language-php">Cache::put($cacheKey, $data, $ttl);
 $cachedData = Cache::get($cacheKey);</code></pre>
                 </div>
             </section>
@@ -116,7 +116,7 @@ $cachedData = Cache::get($cacheKey);</code></pre>
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Type Declarations</h3>
                     <p>We use PHP 8+ type declarations everywhere:</p>
-                    <pre><code class="language-php php">public function getLastMessageId(string $channel): ?int
+                    <pre><code class="language-php">public function getLastMessageId(string $channel): ?int
 {
     // Return type is nullable int
 }</code></pre>
@@ -125,7 +125,7 @@ $cachedData = Cache::get($cacheKey);</code></pre>
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Constructor Property Promotion</h3>
                     <p>Using PHP 8's constructor property promotion for cleaner code:</p>
-                    <pre><code class="language-php php">public function __construct(
+                    <pre><code class="language-php">public function __construct(
     private TelegramChannelService $telegramService,
     private MessageService $messageService,
 ) {}</code></pre>
@@ -139,7 +139,7 @@ $cachedData = Cache::get($cacheKey);</code></pre>
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Request/Response Objects Pattern</h3>
                     <p class="mb-2">Instead of using arrays or stdClass, we use dedicated Request and Response objects:</p>
-                    <pre><code class="language-php php">// Custom Request Objects
+                    <pre><code class="language-php">// Custom Request Objects
 app/Http/Requests/Api/V2/GetLastMessageRequest.php
 app/Http/Requests/Api/V2/GetStatisticsRequest.php
 
@@ -153,7 +153,7 @@ app/Http/Responses/Api/V2/ErrorResponse.php</code></pre>
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">JSON:API Specification</h3>
                     <p class="mb-2">We implement <a href="https://jsonapi.org/format/1.1/" target="_blank" class="text-blue-600 hover:underline">JSON:API v1.1</a> for v2 endpoints:</p>
-                    <pre><code class="language-json json">{
+                    <pre><code class="language-json">{
     "data": {
         "type": "channel-message",
         "id": "channelname",
@@ -187,7 +187,7 @@ app/Http/Responses/Api/V2/ErrorResponse.php</code></pre>
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Minimal Interface Usage</h3>
                     <p class="mb-2">We only use interfaces for external dependencies that might change:</p>
-                    <pre><code class="language-php php">// Only for the Telegram client that could be swapped
+                    <pre><code class="language-php">// Only for the Telegram client that could be swapped
 interface TelegramApiInterface {
     public function getChannelInfo(string $channel): ?array;
     public function getMessagesHistory(string $channel, array $params): array;
@@ -236,7 +236,7 @@ interface TelegramApiInterface {
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Pragmatic SOLID</h3>
                     <p>We apply SOLID principles where they add value, not dogmatically:</p>
-                    <pre><code class="language-php php">// Good: Service handles one clear responsibility
+                    <pre><code class="language-php">// Good: Service handles one clear responsibility
 class MessageService {
     public function getLastMessageId(string $channel): ?int
 
@@ -252,7 +252,7 @@ interface MessageServiceInterface // ❌ We don't need this</code></pre>
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Unit Tests</h3>
                     <p>Service classes are tested in isolation using <a href="http://docs.mockery.io/en/latest/" target="_blank" class="text-blue-600 hover:underline">Mockery</a>:</p>
-                    <pre><code class="language-php php">$this->apiClient = Mockery::mock(TelegramApiInterface::class);
+                    <pre><code class="language-php">$this->apiClient = Mockery::mock(TelegramApiInterface::class);
 $this->apiClient->shouldReceive('getChannelInfo')
     ->with('@' . $channelUsername)
     ->once()
@@ -262,7 +262,7 @@ $this->apiClient->shouldReceive('getChannelInfo')
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Feature Tests</h3>
                     <p>API endpoints are tested using Laravel's <a href="https://laravel.com/docs/12.x/http-tests" target="_blank" class="text-blue-600 hover:underline">HTTP tests</a>:</p>
-                    <pre><code class="language-php php">$response = $this->getJson("/api/v2/telegram/channels/{$channel}/messages/last-id");
+                    <pre><code class="language-php">$response = $this->getJson("/api/v2/telegram/channels/{$channel}/messages/last-id");
 $response->assertStatus(200)
     ->assertJsonStructure(['data', 'meta', 'jsonapi']);</code></pre>
                 </div>
@@ -284,7 +284,7 @@ $response->assertStatus(200)
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Rate Limiting</h3>
                     <p>Different limits for different endpoints:</p>
-                    <pre><code class="language-php php">$channelMiddleware = ['throttle:60,1'];  // 60 requests per minute
+                    <pre><code class="language-php">$channelMiddleware = ['throttle:60,1'];  // 60 requests per minute
 $statsMiddleware = ['throttle:10,60'];   // 10 requests per hour</code></pre>
                 </div>
             </section>
@@ -325,7 +325,59 @@ $statsMiddleware = ['throttle:10,60'];   // 10 requests per hour</code></pre>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/php.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
     <script>
-        hljs.highlightAll();
+        // Try to initialize highlight.js
+        if (typeof hljs !== 'undefined') {
+            hljs.highlightAll();
+        } else {
+            // Fallback: Add basic inline syntax highlighting if CDN fails
+            console.warn('Highlight.js failed to load, using fallback');
+            document.addEventListener('DOMContentLoaded', function() {
+                // Add basic styling to code blocks
+                document.querySelectorAll('pre code').forEach(function(block) {
+                    block.style.display = 'block';
+                    block.style.overflowX = 'auto';
+                    block.style.padding = '1rem';
+                    block.style.background = '#282c34';
+                    block.style.color = '#abb2bf';
+                    block.style.borderRadius = '0.5rem';
+                    block.style.fontSize = '0.875rem';
+                    block.style.lineHeight = '1.5';
+                    block.style.fontFamily = "'Fira Code', 'Consolas', Monaco, 'Andale Mono', 'Ubuntu Mono', monospace";
+                    
+                    // Basic PHP syntax highlighting
+                    if (block.classList.contains('language-php')) {
+                        block.innerHTML = block.innerHTML
+                            // PHP keywords
+                            .replace(/\b(public|private|protected|function|class|interface|namespace|use|return|if|else|foreach|for|while|do|switch|case|break|continue|new|extends|implements|trait|const|static|abstract|final|throw|try|catch|finally)\b/g, '<span style="color: #c678dd;">$1</span>')
+                            // PHP variables
+                            .replace(/(\$\w+)/g, '<span style="color: #e06c75;">$1</span>')
+                            // Strings
+                            .replace(/('([^'\\]|\\.)*'|"([^"\\]|\\.)*")/g, '<span style="color: #98c379;">$1</span>')
+                            // Comments
+                            .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #5c6370; font-style: italic;">$1</span>')
+                            // Functions
+                            .replace(/(\w+)(?=\s*\()/g, '<span style="color: #61afef;">$1</span>')
+                            // Numbers
+                            .replace(/\b(\d+)\b/g, '<span style="color: #d19a66;">$1</span>');
+                    }
+                    
+                    // Basic JSON syntax highlighting
+                    if (block.classList.contains('language-json')) {
+                        block.innerHTML = block.innerHTML
+                            // Property names
+                            .replace(/"([^"]+)":/g, '<span style="color: #e06c75;">"$1"</span>:')
+                            // String values
+                            .replace(/:\s*"([^"]*)"/g, ': <span style="color: #98c379;">"$1"</span>')
+                            // Numbers
+                            .replace(/:\s*(\d+)/g, ': <span style="color: #d19a66;">$1</span>')
+                            // Booleans
+                            .replace(/:\s*(true|false)/g, ': <span style="color: #56b6c2;">$1</span>')
+                            // Null
+                            .replace(/:\s*null/g, ': <span style="color: #5c6370;">null</span>');
+                    }
+                });
+            });
+        }
     </script>
 </body>
 </html>
