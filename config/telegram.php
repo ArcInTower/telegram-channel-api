@@ -13,19 +13,21 @@ return [
     */
     'api_id' => env('TELEGRAM_API_ID'),
     'api_hash' => env('TELEGRAM_API_HASH'),
-    
+
     /*
     |--------------------------------------------------------------------------
     | Session Configuration
     |--------------------------------------------------------------------------
     */
     'session_file' => env('TELEGRAM_SESSION_FILE', 'telegram.madeline'),
-    
+
     /*
     |--------------------------------------------------------------------------
     | General Configuration
     |--------------------------------------------------------------------------
     */
-    'cache_ttl' => env('TELEGRAM_CACHE_TTL', 300), // 5 minutes
+    'cache_ttl' => env('TELEGRAM_CACHE_TTL', 300), // 5 minutes for messages
+    'statistics_cache_ttl' => env('TELEGRAM_STATS_CACHE_TTL', 3600), // 1 hour for statistics
+    'max_statistics_days' => env('TELEGRAM_MAX_STATS_DAYS', 15), // Max days for statistics
     'timeout' => env('TELEGRAM_TIMEOUT', 30),
 ];
