@@ -46,19 +46,6 @@
             width: 100%;
         }
         
-        header {
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 1.5rem 0;
-            margin-bottom: 3rem;
-        }
-        
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #0ea5e9;
-            text-decoration: none;
-        }
         
         main {
             flex: 1;
@@ -488,21 +475,10 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="logo">🛸 Telegram Channel API</span>
-                <nav style="display: flex; gap: 1.5rem;">
-                    <a href="/" style="color: #1e293b; text-decoration: none; font-weight: 600;">Home</a>
-                    <a href="{{ route('changelog') }}" style="color: #0ea5e9; text-decoration: none; font-weight: 500;">Changelog</a>
-                    <a href="{{ route('architecture') }}" style="color: #0ea5e9; text-decoration: none; font-weight: 500;">Architecture</a>
-                </nav>
-            </div>
-        </div>
-    </header>
+    @include('partials.header')
 
     <main class="container">
-        <div class="hero">
+        <div class="hero" style="margin-top: 3rem;">
             <p class="subtitle" style="font-size: 1.5rem; margin-bottom: 0.75rem;">
                 Get real-time data and statistics from public Telegram channels
             </p>

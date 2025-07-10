@@ -13,18 +13,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="font-sans antialiased bg-gray-50">
-    <header class="bg-white shadow-sm border-b">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-800">🛸 Telegram Channel API</h1>
-                <nav class="space-x-4">
-                    <a href="/" class="text-blue-600 hover:text-blue-800">Home</a>
-                    <a href="{{ route('changelog') }}" class="text-gray-800 font-semibold">Changelog</a>
-                    <a href="{{ route('architecture') }}" class="text-blue-600 hover:text-blue-800">Architecture</a>
-                </nav>
-            </div>
-        </div>
-    </header>
+    @include('partials.header')
 
     <main class="container mx-auto px-4 py-8">
     <h1 class="text-4xl font-bold mb-8 text-gray-800">Changelog</h1>

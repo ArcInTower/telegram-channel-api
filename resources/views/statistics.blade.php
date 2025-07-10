@@ -46,17 +46,7 @@
     </style>
 </head>
 <body>
-    <header class="bg-white shadow-sm border-b">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-800">Channel Statistics</h1>
-                <nav>
-                    <a href="/" class="text-blue-600 hover:text-blue-800 mr-4">Home</a>
-                    <a href="{{ route('changelog') }}" class="text-blue-600 hover:text-blue-800">Changelog</a>
-                </nav>
-            </div>
-        </div>
-    </header>
+    @include('partials.header')
 
     <main class="container mx-auto px-4 py-8">
         <div id="loading" class="loading">
