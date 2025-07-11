@@ -5,6 +5,9 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @deprecated v1 API is deprecated. Use v2 resources instead.
+ */
 class LastMessageResource extends JsonResource
 {
     /**

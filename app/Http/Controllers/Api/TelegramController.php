@@ -10,6 +10,9 @@ use App\Services\TelegramChannelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @deprecated v1 API is deprecated. Use v2 API endpoints instead.
+ */
 class TelegramController extends Controller
 {
     private TelegramChannelService $telegramService;
@@ -23,6 +26,9 @@ class TelegramController extends Controller
         $this->messageService = $messageService;
     }
 
+    /**
+     * @deprecated Use /api/v2/telegram/channels/{channel}/messages/last-id instead
+     */
     public function getLastMessageId(GetLastMessageRequest $request): JsonResponse
     {
         try {
