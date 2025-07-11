@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\TelegramController;
 use App\Http\Controllers\Api\V2\ChannelInfoController;
+use App\Http\Controllers\Api\V2\CompareController;
 use App\Http\Controllers\Api\V2\MessageController;
 use App\Http\Controllers\Api\V2\StatisticsController;
 use Illuminate\Http\Request;
@@ -61,4 +62,9 @@ Route::prefix('v2/telegram')->group(function () {
             ->where('days', '[0-9]+')
             ->name('v2.telegram.channel.statistics.days');
     });
+
+    // Compare multiple channels
+    Route::post('/channels/compare', [CompareController::class, 'compareChannels'])
+        ->middleware($statsMiddleware)
+        ->name('v2.telegram.channels.compare');
 });
