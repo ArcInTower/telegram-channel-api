@@ -1,599 +1,191 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    <title>Telegram Channel API - Get Channel Data & Statistics</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-    <!-- Additional Styles -->
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
-            background: #f8fafc;
-            color: #334155;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            width: 100%;
-        }
-        
-        
-        main {
-            flex: 1;
-        }
-        
-        .hero {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 1rem;
-        }
-        
-        .subtitle {
-            font-size: 1.125rem;
-            color: #64748b;
-        }
-        
-        .endpoints-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            padding: 2.5rem;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-            width: 100%;
-            max-width: 100%;
-            position: relative;
-        }
-        
-        .card:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            bottom: -1.25rem;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 2px;
-            background: #e2e8f0;
-        }
-        
-        .card h2 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .card .description {
-            color: #64748b;
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            align-items: flex-end;
-        }
-        
-        .input-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .input-label {
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-        
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.2s;
-        }
-        
-        input[type="text"]:focus, input[type="number"]:focus {
-            outline: none;
-            border-color: #0ea5e9;
-        }
-        
-        button {
-            padding: 0.75rem 1.5rem;
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            align-self: flex-end;
-        }
-        
-        button:hover {
-            background: #0284c7;
-            transform: translateY(-1px);
-        }
-        
-        button:hover[style*="background: #10b981"] {
-            background: #059669 !important;
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .result {
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-            font-size: 0.875rem;
-            overflow-x: auto;
-            display: none;
-            white-space: pre;
-            line-height: 1.6;
-        }
-        
-        
-        .stats-section {
-            margin-bottom: 1.25rem;
-        }
-        
-        .stats-section h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin: 1.5rem 0 0.75rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .stat-box {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        
-        .stat-box:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
-        }
-        
-        .stat-box .value {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #0ea5e9;
-            line-height: 1.2;
-        }
-        
-        .stat-box .label {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-            font-weight: 500;
-        }
-        
-        .user-row {
-            display: grid;
-            grid-template-columns: 1fr 60px 80px 60px;
-            gap: 0.75rem;
-            padding: 0.5rem 0.75rem;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-            margin-bottom: 0.375rem;
-            align-items: center;
-            font-size: 0.8125rem;
-        }
-        
-        .user-row:hover {
-            background: #f0f9ff;
-        }
-        
-        .user-row .user-id {
-            font-weight: 500;
-            color: #1e293b;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .activity-chart {
-            display: flex;
-            gap: 0.25rem;
-            align-items: flex-end;
-            height: 80px;
-            margin-bottom: 0.75rem;
-            padding: 0.75rem;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-        }
-        
-        .activity-bar {
-            flex: 1;
-            background: #0ea5e9;
-            border-radius: 0.375rem 0.375rem 0 0;
-            min-height: 4px;
-            position: relative;
-            transition: all 0.2s;
-        }
-        
-        .activity-bar:hover {
-            background: #0284c7;
-        }
-        
-        .activity-bar:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e293b;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            margin-bottom: 0.25rem;
-        }
-        
-        .result.success {
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: #e2e8f0;
-        }
-        
-        .result.error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-        }
-        
-        .result.loading {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            color: #0369a1;
-        }
-        
-        
-        .code-block {
-            background: #1e293b;
-            color: #e2e8f0;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-            font-size: 0.875rem;
-            overflow-x: auto;
-            margin-bottom: 1rem;
-            word-break: break-all;
-            white-space: pre-wrap;
-        }
-        
-        @media (min-width: 1024px) {
-            .code-block {
-                word-break: normal;
-                white-space: pre;
-            }
-        }
-        
-        .info-box {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .info-box p {
-            color: #0369a1;
-            font-size: 0.875rem;
-            margin: 0;
-        }
-        
-        .quick-start {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        .quick-start h3 {
-            color: #1e293b;
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-        
-        .quick-start p {
-            color: #64748b;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            margin-bottom: 0.5rem;
-        }
-        
-        footer {
-            margin-top: 4rem;
-            padding: 2rem 0;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        
-        footer a {
-            color: #0ea5e9;
-            text-decoration: none;
-        }
-        
-        footer a:hover {
-            text-decoration: underline;
-        }
-        
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .stat-card {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #0369a1;
-        }
-        
-        .stat-label {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-        
-        @media (max-width: 1024px) {
-            .endpoints-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .card {
-                padding: 1.5rem;
-            }
-            
-            .input-group {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-            
-            .input-wrapper {
-                width: 100%;
-            }
-            
-            button {
-                width: 100%;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
-            }
-            
-            .user-row {
-                font-size: 0.75rem;
-                grid-template-columns: 1fr 60px 80px 60px;
-                gap: 0.5rem;
-                padding: 0.5rem;
-            }
-            
-            .activity-chart {
-                height: 80px;
-                padding: 0.75rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    @include('partials.header')
+@extends('layouts.app')
 
-    <main class="container">
-        <div class="hero" style="margin-top: 3rem;">
-            <p class="subtitle" style="font-size: 1.5rem; margin-bottom: 0.75rem;">
+@section('content')
+        <div class="text-center mb-12 mt-12">
+            <p class="text-2xl text-gray-600 mb-3">
                 Get real-time data and statistics from public Telegram channels
             </p>
-            <p style="font-size: 1rem; color: #94a3b8; margin-bottom: 2.5rem;">
+            <p class="text-base text-gray-400 mb-10">
                 An unofficial API for retrieving public channel data
             </p>
             
-            <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 1rem; padding: 1.5rem; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-                <div style="display: flex; items-center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <span style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite;"></span>
-                    <span style="font-size: 0.875rem; font-weight: 600; color: #0369a1;">Available Endpoints</span>
+            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-6 max-w-2xl mx-auto shadow-lg">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-sm font-semibold text-blue-700">Available Endpoints</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <code style="display: block; background: white; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.8125rem; color: #1e293b; font-family: ui-monospace, monospace; border: 1px solid #e2e8f0;">
+                <div class="flex flex-col gap-2">
+                    <code class="block bg-white px-2 sm:px-4 py-3 rounded-lg text-xs text-gray-800 font-mono border border-gray-200 overflow-x-auto whitespace-nowrap">
                         GET /api/v2/telegram/channels/{channel}/messages/last-id
                     </code>
-                    <code style="display: block; background: white; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.8125rem; color: #1e293b; font-family: ui-monospace, monospace; border: 1px solid #e2e8f0;">
+                    <code class="block bg-white px-2 sm:px-4 py-3 rounded-lg text-xs text-gray-800 font-mono border border-gray-200 overflow-x-auto whitespace-nowrap">
                         GET /api/v2/telegram/channels/{channel}/statistics/{days}
                     </code>
                 </div>
-                <p style="text-align: center; margin-top: 1rem; font-size: 0.875rem; color: #64748b;">
+                <p class="text-center mt-4 text-sm text-gray-600">
                     Try them out below with interactive examples ↓
                 </p>
             </div>
         </div>
 
-        <div class="endpoints-container">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <!-- Last Message ID Card -->
-            <div class="card">
-                <h2>🛰️ Last Message ID</h2>
-                <p class="description">Retrieve the latest message ID from any public Telegram channel</p>
+            <div class="bg-white border border-gray-200 rounded-xl p-10 shadow-md relative">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-3 flex items-center gap-3">🛰️ Last Message ID</h2>
+                <p class="text-gray-600 mb-6">Retrieve the latest message ID from any public Telegram channel</p>
                 
-                <div class="info-box">
-                    <p>✓ Rate limit: 60 requests per minute | ✓ Cache: 5 minutes TTL (auto-expires)</p>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-blue-700 text-sm m-0">✓ Rate limit: 60 requests per minute | ✓ Cache: 5 minutes TTL (auto-expires)</p>
                 </div>
                 
-                <div class="code-block">GET /api/v2/telegram/channels/{channel}/messages/last-id</div>
+                <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-4">GET /api/v2/telegram/channels/{channel}/messages/last-id</div>
                 
-                <div class="input-group">
-                    <div class="input-wrapper">
-                        <label class="input-label">Channel username</label>
-                        <input type="text" id="channelInput" placeholder="e.g., python" value="orangeterapy">
+                <div class="flex gap-4 mb-4 items-end">
+                    <div class="flex-1 flex flex-col gap-2">
+                        <label class="text-sm text-gray-600">Channel username</label>
+                        <input type="text" id="channelInput" placeholder="e.g., python" value="orangeterapy" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
-                    <button onclick="getLastMessage()">Try it</button>
+                    <button onclick="getLastMessage()" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transform hover:-translate-y-px transition-all whitespace-nowrap">Try it</button>
                 </div>
                 
-                <div style="margin-top: 1rem; text-align: right; height: 1.5rem;">
+                <div class="mt-4 text-right h-6">
                     <!-- Placeholder space to align with statistics card -->
                 </div>
                 
-                <div id="messageResult" class="result"></div>
+                <div id="messageResult" class="mt-6 p-6 rounded-xl font-mono text-sm overflow-x-auto hidden whitespace-pre leading-relaxed"></div>
                 
-                <div class="quick-start">
-                    <h3>🚀 Quick Start</h3>
-                    <p>Try with cURL:</p>
-                    <div class="code-block">curl "{{ url('/api/v2/telegram/channels/python/messages/last-id') }}"</div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-8">
+                    <h3 class="text-gray-800 text-lg font-semibold mb-4">🚀 Quick Start</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-2">Try with cURL:</p>
+                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl "{{ url('/api/v2/telegram/channels/python/messages/last-id') }}"</div>
                 </div>
             </div>
 
             <!-- Statistics Card -->
-            <div class="card">
-                <h2>🌌 Channel Statistics</h2>
-                <p class="description">Get detailed activity statistics from the last N days</p>
+            <div class="bg-white border border-gray-200 rounded-xl p-10 shadow-md relative">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-3 flex items-center gap-3">🌌 Channel Statistics</h2>
+                <p class="text-gray-600 mb-6">Get detailed activity statistics from the last N days</p>
                 
-                <div class="info-box">
-                    <p>⚠ Rate limit: 5 requests per hour | ✓ Cache: 1 hour TTL | ✓ Analyzes up to 15 days</p>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-blue-700 text-sm m-0">⚠ Rate limit: 5 requests per hour | ✓ Cache: 1 hour TTL | ✓ Analyzes up to 15 days</p>
                 </div>
                 
-                <div class="code-block">GET /api/v2/telegram/channels/{channel}/statistics/{days}</div>
+                <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-4">GET /api/v2/telegram/channels/{channel}/statistics/{days}</div>
                 
-                <div class="input-group">
-                    <div class="input-wrapper" style="flex: 2;">
-                        <label class="input-label">Channel username</label>
-                        <input type="text" id="statsChannelInput" placeholder="e.g., python" value="orangeterapy">
+                <div class="flex gap-4 mb-4 items-end">
+                    <div class="flex-[2_2_0%] flex flex-col gap-2">
+                        <label class="text-sm text-gray-600">Channel username</label>
+                        <input type="text" id="statsChannelInput" placeholder="e.g., python" value="orangeterapy" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
-                    <div class="input-wrapper" style="flex: 1;">
-                        <label class="input-label">Days</label>
-                        <input type="number" id="statsDaysInput" placeholder="7" value="7" min="1" max="15">
+                    <div class="flex-1 flex flex-col gap-2">
+                        <label class="text-sm text-gray-600">Days</label>
+                        <input type="number" id="statsDaysInput" placeholder="7" value="7" min="1" max="15" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
-                    <button onclick="getChannelStats()">Try it</button>
+                    <button onclick="getChannelStats()" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transform hover:-translate-y-px transition-all whitespace-nowrap">Try it</button>
                 </div>
                 
-                <div style="margin-top: 1rem; text-align: right;">
-                    <a href="#" onclick="viewVisualStats(); return false;" style="color: #10b981; text-decoration: none; font-weight: 500; font-size: 0.875rem;">📊 View Visual Statistics →</a>
+                <div class="mt-4 text-right">
+                    <a href="#" onclick="viewVisualStats(); return false;" class="text-green-600 no-underline font-medium text-sm hover:text-green-700">📊 View Visual Statistics →</a>
                 </div>
                 
-                <div id="statsResult" class="result"></div>
+                <div id="statsResult" class="mt-6 p-6 rounded-xl font-mono text-sm overflow-x-auto hidden whitespace-pre leading-relaxed"></div>
                 
-                <div class="quick-start">
-                    <h3>🚀 Quick Start</h3>
-                    <p>Try with cURL:</p>
-                    <div class="code-block">curl "{{ url('/api/v2/telegram/channels/python/statistics/7') }}"</div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-8">
+                    <h3 class="text-gray-800 text-lg font-semibold mb-4">🚀 Quick Start</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-2">Try with cURL:</p>
+                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl "{{ url('/api/v2/telegram/channels/python/statistics/7') }}"</div>
+                </div>
+            </div>
+
+            <!-- Channel Comparison Card -->
+            <div class="bg-white border border-gray-200 rounded-xl p-10 shadow-md relative">
+                <div class="absolute top-4 right-4">
+                    <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">
+                        🧪 BETA
+                    </span>
+                </div>
+                
+                <h2 class="text-2xl font-semibold text-gray-800 mb-3 flex items-center gap-3">📊 Channel Comparison</h2>
+                <p class="text-gray-600 mb-6">Compare statistics between multiple channels side by side</p>
+                
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                    <p class="text-purple-700 text-sm font-medium mb-2">⚠️ Experimental Feature</p>
+                    <p class="text-purple-600 text-xs">This API endpoint is in beta and may change without prior notice. No deprecation warnings will be provided for breaking changes.</p>
+                </div>
+                
+                <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-4">POST /api/v2/telegram/channels/compare</div>
+                
+                <p class="text-gray-600 text-sm mb-4">Compare up to 5 channels simultaneously:</p>
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="text-sm text-gray-600 mb-2 block">Channels to compare (comma separated)</label>
+                        <input type="text" id="compareChannelsInput" placeholder="e.g., nuevomeneame, python, javascript" value="nuevomeneame, orangeterapy" 
+                               class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-purple-500 transition-colors">
+                    </div>
+                    <div class="flex gap-4 items-end">
+                        <div class="flex-1">
+                            <label class="text-sm text-gray-600 mb-2 block">Time period</label>
+                            <select id="compareDaysInput" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-purple-500 transition-colors">
+                                <option value="1">Last 24 hours</option>
+                                <option value="3">Last 3 days</option>
+                                <option value="7" selected>Last 7 days (max)</option>
+                            </select>
+                        </div>
+                        <button onclick="compareChannels()" class="px-6 py-3 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transform hover:-translate-y-px transition-all whitespace-nowrap">Try it</button>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-right">
+                    <a href="#" onclick="viewVisualComparison(); return false;" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 font-medium text-sm">
+                        View Visual Comparison →
+                    </a>
+                </div>
+                
+                <div id="compareResult" class="mt-6 p-6 rounded-xl font-mono text-sm overflow-x-auto hidden whitespace-pre leading-relaxed"></div>
+                
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-8">
+                    <h3 class="text-gray-800 text-lg font-semibold mb-4">🚀 Quick Start</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-2">Try with cURL:</p>
+                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl -X POST "{{ url('/api/v2/telegram/channels/compare') }}" \
+  -H "Content-Type: application/json" \
+  -d '{"channels": ["nuevomeneame", "python"], "days": 7}'</div>
                 </div>
             </div>
         </div>
         
         <!-- Deprecated v1 API Notice -->
-        <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 0.75rem; padding: 1.5rem; margin: 3rem auto 2rem; max-width: 800px;">
-            <h3 style="color: #92400e; font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">⚠️ Legacy v1 API (Deprecated)</h3>
-            <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 1rem;">
+        <div class="bg-yellow-100 border border-yellow-400 rounded-xl p-6 mt-12 mb-8 max-w-3xl mx-auto">
+            <h3 class="text-yellow-900 text-lg font-semibold mb-4">⚠️ Legacy v1 API (Deprecated)</h3>
+            <p class="text-yellow-800 text-sm mb-4">
                 The v1 API is still available but deprecated. Please migrate to v2 for better features and JSON:API compliance.
             </p>
-            <div style="background: white; border: 1px solid #fbbf24; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
-                <p style="font-size: 0.8125rem; color: #78350f; margin-bottom: 0.5rem;"><strong>v1 Endpoint (deprecated):</strong></p>
-                <code style="display: block; background: #fffbeb; padding: 0.5rem; border-radius: 0.25rem; font-size: 0.8125rem; color: #451a03; margin-bottom: 0.75rem;">
+            <div class="bg-white border border-yellow-300 rounded-lg p-4 mt-4">
+                <p class="text-xs text-yellow-800 mb-2"><strong>v1 Endpoint (deprecated):</strong></p>
+                <code class="block bg-yellow-50 p-2 rounded text-xs text-yellow-900 mb-3 font-mono">
                     GET {{ url('/api/telegram/last-message?channel={channel}') }}
                 </code>
-                <p style="font-size: 0.75rem; color: #92400e; margin: 0;">
-                    Returns: <code style="background: #fef3c7; padding: 0.125rem 0.25rem; border-radius: 0.125rem;">{"success": true, "last_message_id": 12345}</code>
+                <p class="text-xs text-yellow-800 m-0">
+                    Returns: <code class="bg-yellow-100 px-1 py-0.5 rounded text-xs">{"success": true, "last_message_id": 12345}</code>
                 </p>
             </div>
         </div>
-    </main>
+@endsection
 
-    @include('partials.footer')
-
-    <script>
+@push('scripts')
+<script>
         const API_BASE = '/api';
         
         function showResult(elementId, data, isError = false) {
             const element = document.getElementById(elementId);
             element.style.display = 'block';
-            element.className = `result ${isError ? 'error' : 'success'}`;
+            
+            // Apply Tailwind classes based on error state
+            if (isError) {
+                element.className = 'mt-6 p-6 rounded-xl font-mono text-sm overflow-x-auto whitespace-pre leading-relaxed bg-red-50 border border-red-200 text-red-700';
+            } else {
+                element.className = 'mt-6 p-6 rounded-xl font-mono text-sm overflow-x-auto whitespace-pre leading-relaxed bg-gray-800 border border-gray-700 text-gray-200';
+            }
             
             // Check if this is a deprecated v1 response
             if (!isError && data.success === true && !data.jsonapi) {
@@ -603,6 +195,15 @@
                     ...data
                 };
                 element.innerHTML = formatJSONWithColors(deprecationNotice);
+            } else if (isError && data.errors && data.errors[0] && data.errors[0].detail && data.errors[0].status === '401') {
+                // Special handling for authentication errors with HTML links
+                const error = data.errors[0];
+                element.innerHTML = `<div class="space-y-3">
+                    <div class="font-bold text-red-800 text-base">${error.title}</div>
+                    <div class="text-sm">${error.detail}</div>
+                    ${error.meta ? '<div class="text-xs mt-2 opacity-75">' + error.meta.help + '</div>' : ''}
+                    ${error.links && error.links.about ? '<div class="mt-3 text-xs">API Link: <a href="' + error.links.about + '" class="underline hover:text-red-600">' + error.links.about + '</a></div>' : ''}
+                </div>`;
             } else {
                 element.innerHTML = formatJSONWithColors(data);
             }
@@ -641,7 +242,7 @@
         function showLoading(elementId) {
             const element = document.getElementById(elementId);
             element.style.display = 'block';
-            element.className = 'result loading';
+            element.className = 'mt-6 p-6 rounded-xl font-mono text-sm overflow-x-auto whitespace-pre leading-relaxed bg-blue-50 border border-blue-200 text-blue-700';
             element.textContent = 'Loading...';
         }
         
@@ -656,6 +257,26 @@
             
             try {
                 const response = await fetch(`${API_BASE}/v2/telegram/channels/${encodeURIComponent(channel)}/messages/last-id`);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // If we got HTML, it means MadelineProto needs authentication
+                    showResult('messageResult', {
+                        jsonapi: { version: '1.1' },
+                        errors: [{
+                            status: '401',
+                            title: 'Authentication Required',
+                            detail: '🔐 The bot has been disconnected from Telegram. Please contact the administrator to re-authenticate the bot.'
+                        }],
+                        meta: {
+                            timestamp: new Date().toISOString(),
+                            api_version: 'v2'
+                        }
+                    }, true);
+                    return;
+                }
+                
                 const data = await response.json();
                 if (data.errors) {
                     showResult('messageResult', data, true);
@@ -664,7 +285,23 @@
                     showResult('messageResult', data, false);
                 }
             } catch (error) {
-                showResult('messageResult', { error: error.message }, true);
+                // Check if it's a JSON parse error
+                if (error.message.includes('JSON')) {
+                    showResult('messageResult', {
+                        jsonapi: { version: '1.1' },
+                        errors: [{
+                            status: '401',
+                            title: 'Authentication Required',
+                            detail: '🔐 The bot has been disconnected from Telegram. Please contact the administrator to re-authenticate the bot.'
+                        }],
+                        meta: {
+                            timestamp: new Date().toISOString(),
+                            api_version: 'v2'
+                        }
+                    }, true);
+                } else {
+                    showResult('messageResult', { error: error.message }, true);
+                }
             }
         }
         
@@ -787,16 +424,52 @@
             
             try {
                 const response = await fetch(`${API_BASE}/v2/telegram/channels/${encodeURIComponent(channel)}/statistics/${days}`);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // If we got HTML, it means MadelineProto needs authentication
+                    showResult('statsResult', {
+                        jsonapi: { version: '1.1' },
+                        errors: [{
+                            status: '401',
+                            title: 'Authentication Required',
+                            detail: '🔐 The bot has been disconnected from Telegram. Please contact the administrator to re-authenticate the bot.'
+                        }],
+                        meta: {
+                            timestamp: new Date().toISOString(),
+                            api_version: 'v2'
+                        }
+                    }, true);
+                    return;
+                }
+                
                 const data = await response.json();
                 
-                if (data.error) {
+                if (data.errors) {
                     showResult('statsResult', data, true);
                 } else {
                     // Show formatted JSON response directly, same as Last Message ID
                     showResult('statsResult', data, false);
                 }
             } catch (error) {
-                showResult('statsResult', { error: error.message }, true);
+                // Check if it's a JSON parse error
+                if (error.message.includes('JSON')) {
+                    showResult('statsResult', {
+                        jsonapi: { version: '1.1' },
+                        errors: [{
+                            status: '401',
+                            title: 'Authentication Required',
+                            detail: '🔐 The bot has been disconnected from Telegram. Please contact the administrator to re-authenticate the bot.'
+                        }],
+                        meta: {
+                            timestamp: new Date().toISOString(),
+                            api_version: 'v2'
+                        }
+                    }, true);
+                } else {
+                    showResult('statsResult', { error: error.message }, true);
+                }
             }
         }
         
@@ -826,6 +499,73 @@
             // Navigate to visual stats page
             window.location.href = `/statistics/${encodeURIComponent(channel)}/${days}`;
         }
-    </script>
-</body>
-</html>
+        
+        async function compareChannels() {
+            const channelsInput = document.getElementById('compareChannelsInput').value.trim();
+            const days = document.getElementById('compareDaysInput').value;
+            
+            if (!channelsInput) {
+                alert('Please enter at least 2 channel usernames');
+                return;
+            }
+            
+            // Split by comma and clean up
+            const channels = channelsInput.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            
+            if (channels.length < 2) {
+                alert('Please enter at least 2 channels to compare');
+                return;
+            }
+            
+            if (channels.length > 4) {
+                alert('Maximum 4 channels allowed');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/v2/telegram/channels/compare`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ channels, days: parseInt(days) })
+                });
+                const data = await response.json();
+                showResult('compareResult', data, !response.ok);
+            } catch (error) {
+                showResult('compareResult', { error: error.message }, true);
+            }
+        }
+        
+        function viewVisualComparison() {
+            const channelsInput = document.getElementById('compareChannelsInput').value.trim();
+            const days = document.getElementById('compareDaysInput').value;
+            
+            if (!channelsInput) {
+                alert('Please enter at least 2 channel usernames');
+                return;
+            }
+            
+            // Split by comma and clean up
+            const channels = channelsInput.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            
+            if (channels.length < 2) {
+                alert('Please enter at least 2 channels to compare');
+                return;
+            }
+            
+            if (channels.length > 4) {
+                alert('Maximum 4 channels allowed');
+                return;
+            }
+            
+            // Build URL with query parameters
+            const params = new URLSearchParams();
+            channels.forEach(channel => params.append('channels[]', channel));
+            params.append('days', days);
+            
+            // Navigate to comparison page with pre-filled channels
+            window.location.href = `/compare?${params.toString()}`;
+        }
+</script>
+@endpush
