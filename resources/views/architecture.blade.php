@@ -1,41 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Architecture - Laravel Telegram API</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/highlight.js'])
-    
-    <style>
-        /* Inline code styles */
-        .prose code:not([class*="language-"]) {
-            background-color: #f3f4f6;
-            padding: 0.125rem 0.25rem;
-            border-radius: 0.25rem;
-            font-size: 0.875em;
-            color: #1f2937;
-        }
-        
-        /* Override highlight.js styles for better appearance */
-        pre code.hljs {
-            margin: 1rem 0;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            padding: 1rem;
-            overflow-x: auto;
-            font-family: 'Fira Code', 'Consolas', Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-        }
-    </style>
-</head>
-<body class="font-sans antialiased bg-gray-50">
-    @include('partials.header')
+@extends('layouts.app')
 
-    <main class="container mx-auto px-4 py-8">
+@section('title', 'Architecture - Laravel Telegram API')
+
+@section('content')
         <h1 class="text-4xl font-bold mb-8 text-gray-800">Architecture & Design Decisions</h1>
         
         <div class="prose max-w-none">
@@ -312,9 +279,8 @@ $statsMiddleware = ['throttle:10,60'];   // 10 requests per hour</code></pre>
                 </div>
             </section>
         </div>
-    </main>
+@endsection
 
-    @include('partials.footer')
-    
-</body>
-</html>
+@push('scripts')
+    @vite('resources/js/highlight.js')
+@endpush
