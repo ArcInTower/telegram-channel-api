@@ -112,11 +112,11 @@ class StatisticsCalculator
             'period' => [
                 'start' => $startDate->toISOString(),
                 'end' => $endDate->toISOString(),
-                'days' => $startDate->diffInDays($endDate),
+                'days' => (int) round($startDate->diffInDays($endDate)),
             ],
             'summary' => [
                 'total_messages' => $stats->getTotalMessages(),
-                'unique_users' => count($userStats),
+                'active_users' => count($userStats),
                 'total_replies' => $stats->getTotalReplies(),
                 'reply_rate' => $stats->getReplyRate(),
                 'average_messages_per_user' => $stats->getAverageMessagesPerUser(),
@@ -146,7 +146,6 @@ class StatisticsCalculator
 
         foreach ($topUsers as $userId => $stats) {
             $formattedUsers[] = [
-                'user_id' => $userId,
                 'user_name' => $userNames[$userId] ?? 'Unknown',
                 'message_count' => $stats['message_count'],
                 'average_message_length' => $stats['message_count'] > 0

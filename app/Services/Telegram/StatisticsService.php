@@ -25,11 +25,28 @@ class StatisticsService
             $cacheTtl = config('telegram.statistics_cache_ttl', 3600); // 1 hour default
 
             // Try to get from cache first
-            $cachedStats = Cache::get($cacheKey);
-            if ($cachedStats !== null) {
+            $cacheData = Cache::get($cacheKey);
+            $cacheMetaKey = $cacheKey . ':meta';
+            $cacheMeta = Cache::get($cacheMetaKey);
+
+            if ($cacheData !== null) {
                 Log::info("Returning cached statistics for channel: {$channelUsername} for {$days} days");
 
-                return $cachedStats;
+                // If metadata doesn't exist (old cache), create it now
+                if ($cacheMeta === null) {
+                    $cacheMeta = ['cached_at' => now()->toISOString()];
+                    Cache::put($cacheMetaKey, $cacheMeta, $cacheTtl);
+                }
+
+                // Return cached data with metadata
+                return [
+                    'data' => $cacheData,
+                    '_cache_meta' => [
+                        'cached_at' => $cacheMeta['cached_at'],
+                        'from_cache' => true,
+                        'cache_ttl' => $cacheTtl,
+                    ],
+                ];
             }
 
             Log::info("Getting fresh statistics for channel: {$channelUsername} for {$days} days");
@@ -41,7 +58,19 @@ class StatisticsService
             if (!$info || !in_array($info['type'], ['channel', 'supergroup'])) {
                 Log::warning("Not a public channel: {$channelUsername} (type: " . ($info['type'] ?? 'unknown') . ')');
 
-                return null;
+                // Cache the null result to prevent repeated API calls
+                Cache::put($cacheKey, null, $cacheTtl);
+                Cache::put($cacheMetaKey, ['cached_at' => now()->toISOString()], $cacheTtl);
+                Log::info("Cached null result for non-existent channel: {$channelUsername}");
+
+                return [
+                    'data' => null,
+                    '_cache_meta' => [
+                        'cached_at' => null,
+                        'from_cache' => false,
+                        'cache_ttl' => $cacheTtl,
+                    ],
+                ];
             }
 
             $endDate = now();
@@ -60,17 +89,60 @@ class StatisticsService
                 );
             }
 
-            // Cache the statistics
+            // Add channel info to statistics
+            $stats['channel_info'] = [
+                'title' => $info['title'] ?? null,
+                'total_participants' => $info['participants_count'] ?? null,
+                'type' => $info['type'] ?? null,
+                'created_at' => isset($info['created_date']) ? Carbon::createFromTimestamp($info['created_date'])->toISOString() : null,
+                'approx_total_messages' => $info['approx_total_messages'] ?? null,
+            ];
+
+            // Cache only the statistics data
             Cache::put($cacheKey, $stats, $cacheTtl);
+
+            // Cache metadata separately
+            $cacheMetaKey = $cacheKey . ':meta';
+            Cache::put($cacheMetaKey, ['cached_at' => now()->toISOString()], $cacheTtl);
+
             Log::info("Cached statistics for channel: {$channelUsername} for {$cacheTtl} seconds");
 
-            return $stats;
+            // Return without from_cache flag for fresh data
+            return [
+                'data' => $stats,
+                '_cache_meta' => [
+                    'cached_at' => null,
+                    'from_cache' => false,
+                    'cache_ttl' => $cacheTtl,
+                ],
+            ];
 
         } catch (\Exception $e) {
-            Log::error('Error getting channel statistics: ' . $e->getMessage());
+            $message = $e->getMessage();
+
+            // Check for authentication errors
+            if (str_contains($message, 'AUTH_KEY_UNREGISTERED') ||
+                str_contains($message, 'SESSION_REVOKED') ||
+                str_contains($message, 'LOGIN_REQUIRED')) {
+                throw new \RuntimeException('Telegram authentication required. The bot session has expired or been revoked.');
+            }
+
+            Log::error('Error getting channel statistics: ' . $message);
             Log::error('Stack trace: ' . $e->getTraceAsString());
 
-            return null;
+            // Cache the error result to prevent repeated API calls for invalid channels
+            Cache::put($cacheKey, null, min($cacheTtl, 300)); // Cache errors for 5 minutes max
+            $cacheMetaKey = $cacheKey . ':meta';
+            Cache::put($cacheMetaKey, ['cached_at' => now()->toISOString()], min($cacheTtl, 300));
+
+            return [
+                'data' => null,
+                '_cache_meta' => [
+                    'cached_at' => null,
+                    'from_cache' => false,
+                    'cache_ttl' => min($cacheTtl, 300),
+                ],
+            ];
         }
     }
 
@@ -178,7 +250,7 @@ class StatisticsService
             ],
             'summary' => [
                 'total_messages' => 0,
-                'unique_users' => 0,
+                'active_users' => 0,
                 'total_replies' => 0,
                 'reply_rate' => 0,
                 'average_messages_per_user' => 0,

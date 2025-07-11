@@ -3,10 +3,10 @@
 namespace App\Services\Telegram;
 
 use App\Contracts\TelegramApiInterface;
-use Illuminate\Support\Facades\Cache;
+use App\Services\CacheableService;
 use Illuminate\Support\Facades\Log;
 
-class MessageService
+class MessageService extends CacheableService
 {
     private int $cacheTtl;
 
@@ -16,42 +16,38 @@ class MessageService
         $this->cacheTtl = config('telegram.cache_ttl', 300);
     }
 
-    public function getLastMessageId(string $channelUsername): ?int
+    public function getLastMessageId(string $channelUsername): array
     {
         $channelUsername = $this->normalizeUsername($channelUsername);
         $cacheKey = 'telegram_channel:' . $channelUsername;
 
-        // Try to get from cache
-        $cachedData = Cache::get($cacheKey);
+        return $this->getWithCache($cacheKey, $this->cacheTtl, function () use ($channelUsername) {
+            $messageId = $this->fetchLastMessageId($channelUsername);
 
-        if ($cachedData !== null) {
-            Log::info("Cache hit for channel: {$channelUsername}");
+            if ($messageId === null) {
+                return null;
+            }
 
-            return $cachedData['last_message_id'];
-        }
-
-        // Fetch fresh data
-        $messageId = $this->fetchLastMessageId($channelUsername);
-
-        if ($messageId !== null) {
-            // Cache the result
-            $data = [
+            return [
+                'channel' => $channelUsername,
                 'last_message_id' => $messageId,
-                'last_checked_at' => now()->toISOString(),
             ];
-            Cache::put($cacheKey, $data, $this->cacheTtl);
-            Log::info("Cached message ID {$messageId} for channel: {$channelUsername}");
-        }
-
-        return $messageId;
+        });
     }
 
+    /**
+     * Get cache info in legacy format for v1 API compatibility
+     *
+     * @deprecated Use getLastMessageId() which returns cache info in the response
+     */
     public function getCacheInfo(string $channelUsername): array
     {
         $channelUsername = $this->normalizeUsername($channelUsername);
         $cacheKey = 'telegram_channel:' . $channelUsername;
+        $cacheMetaKey = $cacheKey . ':meta';
 
-        $cachedData = Cache::get($cacheKey);
+        $cachedData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+        $cacheMeta = \Illuminate\Support\Facades\Cache::get($cacheMetaKey);
 
         if ($cachedData === null) {
             return [
@@ -60,12 +56,16 @@ class MessageService
             ];
         }
 
-        $lastChecked = \Carbon\Carbon::parse($cachedData['last_checked_at']);
-        $ageSeconds = $lastChecked->diffInSeconds(now());
+        // Calculate age from cached_at timestamp
+        $cacheAge = null;
+        if ($cacheMeta && isset($cacheMeta['cached_at'])) {
+            $cachedAt = \Carbon\Carbon::parse($cacheMeta['cached_at']);
+            $cacheAge = $cachedAt->diffInSeconds(now());
+        }
 
         return [
-            'from_cache' => $ageSeconds < 5, // Consider "from cache" if less than 5 seconds old
-            'cache_age' => $ageSeconds,
+            'from_cache' => $cacheAge !== null && $cacheAge < 5, // Consider "from cache" if less than 5 seconds old
+            'cache_age' => $cacheAge,
         ];
     }
 
@@ -100,7 +100,16 @@ class MessageService
             return null;
 
         } catch (\Exception $e) {
-            Log::error("Error fetching channel {$username}: " . $e->getMessage());
+            $message = $e->getMessage();
+
+            // Check for authentication errors
+            if (str_contains($message, 'AUTH_KEY_UNREGISTERED') ||
+                str_contains($message, 'SESSION_REVOKED') ||
+                str_contains($message, 'LOGIN_REQUIRED')) {
+                throw new \RuntimeException('Telegram authentication required. The bot session has expired or been revoked.');
+            }
+
+            Log::error("Error fetching channel {$username}: " . $message);
 
             return null;
         }

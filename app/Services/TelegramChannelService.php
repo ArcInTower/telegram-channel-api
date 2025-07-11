@@ -16,7 +16,14 @@ class TelegramChannelService
 
     public function getLastMessageId(string $channelUsername): ?int
     {
-        return $this->messageService->getLastMessageId($channelUsername);
+        $result = $this->messageService->getLastMessageId($channelUsername);
+
+        // Extract the message ID from the new format
+        if (is_array($result) && isset($result['data'])) {
+            return $result['data']['last_message_id'] ?? null;
+        }
+
+        return null;
     }
 
     public function getChannelInfo(string $channelUsername): ?array
