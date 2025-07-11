@@ -2,30 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles for syntax highlighting */
-.hljs {
-    display: block;
-    overflow-x: auto;
-    padding: 1rem;
-    background: #282c34;
-    color: #abb2bf;
-    border-radius: 0.5rem;
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
-/* Custom footer link hover */
-footer a:hover {
-    color: #60a5fa !important;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Mobile header adjustments */
-@media (max-width: 640px) {
-    header h1 {
-        font-size: 1.25rem !important;
+/* Loading styles */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.spinner {
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+/* Mobile responsive adjustments for specific layouts */
+@media (max-width: 768px) {
+    .flex.gap-4.items-end {
+        flex-direction: column;
+        gap: 0.75rem;
     }
-    header nav {
-        gap: 0.75rem !important;
-    }
-    header nav a {
-        font-size: 0.8125rem !important;
+    
+    .flex.gap-4.items-end button {
+        width: 100%;
     }
 }
