@@ -8,7 +8,8 @@ export default defineConfig({
                 'resources/css/app.css', 
                 'resources/js/app.js',
                 'resources/js/highlight.js',
-                'resources/js/statistics.js'
+                'resources/js/statistics.js',
+                'resources/js/compare.js'
             ],
             refresh: true,
         }),
