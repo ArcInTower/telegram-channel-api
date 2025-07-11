@@ -11,6 +11,17 @@ class ShowStatisticsRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // Check if channel is blocked
+        $channel = $this->route('channel');
+        if ($channel) {
+            $normalizedChannel = strtolower(ltrim($channel, '@'));
+            $blockedChannels = config('telegram.blocked_channels', []);
+
+            if (in_array($normalizedChannel, array_map('strtolower', $blockedChannels))) {
+                return false;
+            }
+        }
+
         return true;
     }
 
