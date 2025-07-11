@@ -26,7 +26,7 @@ class StatisticsController extends Controller
 
             $stats = $this->telegramService->getChannelStatistics($channel, $days);
 
-            if ($stats === null) {
+            if ($stats === null || (is_array($stats) && isset($stats['data']) && $stats['data'] === null)) {
                 return (new ErrorResponse('Channel not found or unable to retrieve messages', 404))->toResponse();
             }
 
@@ -36,6 +36,15 @@ class StatisticsController extends Controller
                 'days' => $days,
             ]);
 
+        } catch (\RuntimeException $e) {
+            Log::error('Error in V2 getStatistics: ' . $e->getMessage());
+
+            // Check if it's an authentication error
+            if (str_contains($e->getMessage(), 'authentication required')) {
+                return (new ErrorResponse($e->getMessage(), 401))->toResponse();
+            }
+
+            return (new ErrorResponse('Internal server error', 500))->toResponse();
         } catch (\Exception $e) {
             Log::error('Error in V2 getStatistics: ' . $e->getMessage());
 
