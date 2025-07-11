@@ -1,62 +1,45 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Channel Statistics - {{ $channel ?? 'Telegram' }}</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/statistics.js'])
-    
-    <style>
-        body {
-            font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
-            background: #f0f4f8;
-            color: #334155;
-            line-height: 1.6;
-        }
-        
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 400px;
-        }
-        
-        .spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #0ea5e9;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-    @include('partials.header')
+@extends('layouts.app')
 
-    <main class="container mx-auto px-4 py-8">
+@section('title', 'Channel Statistics - ' . ($channel ?? 'Telegram'))
+
+@push('styles')
+<style>
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+@endpush
+
+@section('content')
         <div id="loading" class="loading">
             <div class="spinner"></div>
         </div>
         
-        <div id="error" class="hidden">
+        <div id="error" class="hidden mt-8">
             <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
                 <strong class="font-bold">Error!</strong>
                 <span class="block sm:inline" id="errorMessage"></span>
             </div>
         </div>
         
-        <div id="content" class="hidden">
+        <div id="content" class="hidden mt-8">
             <!-- Header with channel info -->
             <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg shadow-lg p-4 sm:p-6 mb-6 text-white">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -141,10 +124,124 @@
                 </div>
             </div>
         </div>
-    </main>
-    
-    @include('partials.footer')
+@endsection
 
+@push('scripts')
+    @vite('resources/js/statistics.js')
+    <script>
+        // Wait for Chart.js to be loaded
+        let chartLoaded = false;
+        let pendingChartData = {hourly: null, daily: null};
+        
+        // Define chart functions that will be called
+        function createHourlyChart(data) {
+            if (!window.Chart) {
+                pendingChartData.hourly = data;
+                return;
+            }
+            
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            const hours = Object.keys(data);
+            const values = Object.values(data);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: 'Messages',
+                        data: values,
+                        backgroundColor: 'rgba(14, 165, 233, 0.8)',
+                        borderColor: '#0284c7',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createDailyChart(data) {
+            if (!window.Chart) {
+                pendingChartData.daily = data;
+                return;
+            }
+            
+            const ctx = document.getElementById('dailyChart').getContext('2d');
+            const days = Object.keys(data);
+            const values = Object.values(data);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Messages',
+                        data: values,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderColor: '#10b981',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Check if Chart.js is loaded
+        const checkChartLoaded = setInterval(() => {
+            if (window.Chart) {
+                clearInterval(checkChartLoaded);
+                chartLoaded = true;
+                
+                // Create pending charts
+                if (pendingChartData.hourly) {
+                    createHourlyChart(pendingChartData.hourly);
+                }
+                if (pendingChartData.daily) {
+                    createDailyChart(pendingChartData.daily);
+                }
+            }
+        }, 100);
+    </script>
     <script>
         const channel = '{{ $channel }}';
         const days = {{ $days }};
@@ -152,6 +249,14 @@
         async function loadStatistics() {
             try {
                 const response = await fetch(`/api/v2/telegram/channels/${encodeURIComponent(channel)}/statistics/${days}`);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    showError('🔒 The bot has been disconnected from Telegram. Please contact the administrator to re-authenticate the bot.');
+                    return;
+                }
+                
                 const result = await response.json();
                 
                 if (result.errors) {
@@ -168,7 +273,7 @@
                 const stats = data.attributes.statistics;
                 
                 // Hide loading, show content
-                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('loading').style.display = 'none';
                 document.getElementById('content').classList.remove('hidden');
                 
                 // Update header
@@ -178,7 +283,7 @@
                 
                 // Update summary cards
                 document.getElementById('totalMessages').textContent = stats.summary.total_messages.toLocaleString();
-                document.getElementById('activeUsers').textContent = stats.summary.unique_users.toLocaleString();
+                document.getElementById('activeUsers').textContent = stats.summary.active_users.toLocaleString();
                 document.getElementById('replyRate').textContent = stats.summary.reply_rate + '%';
                 document.getElementById('avgLength').textContent = Math.round(stats.summary.average_message_length).toLocaleString();
                 
@@ -199,7 +304,7 @@
         }
         
         function showError(message) {
-            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('loading').style.display = 'none';
             document.getElementById('error').classList.remove('hidden');
             document.getElementById('errorMessage').textContent = message;
         }
@@ -296,6 +401,6 @@
         
         // Load statistics on page load
         loadStatistics();
+        
     </script>
-</body>
-</html>
+@endpush
