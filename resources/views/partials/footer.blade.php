@@ -20,6 +20,7 @@
                     GitHub
                 </a>
                 <a href="https://my.telegram.org" target="_blank" class="text-gray-300 hover:text-blue-400 font-medium">API Credentials</a>
+                <a href="{{ route('exclusion.request') }}" class="text-gray-300 hover:text-blue-400 font-medium">Channel Exclusion</a>
             </div>
         </div>
         
