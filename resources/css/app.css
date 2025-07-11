@@ -1,11 +1,31 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* Custom styles for syntax highlighting */
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 1rem;
+    background: #282c34;
+    color: #abb2bf;
+    border-radius: 0.5rem;
+}
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* Custom footer link hover */
+footer a:hover {
+    color: #60a5fa !important;
+}
+
+/* Mobile header adjustments */
+@media (max-width: 640px) {
+    header h1 {
+        font-size: 1.25rem !important;
+    }
+    header nav {
+        gap: 0.75rem !important;
+    }
+    header nav a {
+        font-size: 0.8125rem !important;
+    }
 }

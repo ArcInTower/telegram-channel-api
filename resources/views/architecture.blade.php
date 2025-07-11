@@ -9,11 +9,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Highlight.js for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/highlight.js'])
     
     <style>
         /* Inline code styles */
@@ -320,64 +316,5 @@ $statsMiddleware = ['throttle:10,60'];   // 10 requests per hour</code></pre>
 
     @include('partials.footer')
     
-    <!-- Highlight.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/php.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
-    <script>
-        // Try to initialize highlight.js
-        if (typeof hljs !== 'undefined') {
-            hljs.highlightAll();
-        } else {
-            // Fallback: Add basic inline syntax highlighting if CDN fails
-            console.warn('Highlight.js failed to load, using fallback');
-            document.addEventListener('DOMContentLoaded', function() {
-                // Add basic styling to code blocks
-                document.querySelectorAll('pre code').forEach(function(block) {
-                    block.style.display = 'block';
-                    block.style.overflowX = 'auto';
-                    block.style.padding = '1rem';
-                    block.style.background = '#282c34';
-                    block.style.color = '#abb2bf';
-                    block.style.borderRadius = '0.5rem';
-                    block.style.fontSize = '0.875rem';
-                    block.style.lineHeight = '1.5';
-                    block.style.fontFamily = "'Fira Code', 'Consolas', Monaco, 'Andale Mono', 'Ubuntu Mono', monospace";
-                    
-                    // Basic PHP syntax highlighting
-                    if (block.classList.contains('language-php')) {
-                        block.innerHTML = block.innerHTML
-                            // PHP keywords
-                            .replace(/\b(public|private|protected|function|class|interface|namespace|use|return|if|else|foreach|for|while|do|switch|case|break|continue|new|extends|implements|trait|const|static|abstract|final|throw|try|catch|finally)\b/g, '<span style="color: #c678dd;">$1</span>')
-                            // PHP variables
-                            .replace(/(\$\w+)/g, '<span style="color: #e06c75;">$1</span>')
-                            // Strings
-                            .replace(/('([^'\\]|\\.)*'|"([^"\\]|\\.)*")/g, '<span style="color: #98c379;">$1</span>')
-                            // Comments
-                            .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #5c6370; font-style: italic;">$1</span>')
-                            // Functions
-                            .replace(/(\w+)(?=\s*\()/g, '<span style="color: #61afef;">$1</span>')
-                            // Numbers
-                            .replace(/\b(\d+)\b/g, '<span style="color: #d19a66;">$1</span>');
-                    }
-                    
-                    // Basic JSON syntax highlighting
-                    if (block.classList.contains('language-json')) {
-                        block.innerHTML = block.innerHTML
-                            // Property names
-                            .replace(/"([^"]+)":/g, '<span style="color: #e06c75;">"$1"</span>:')
-                            // String values
-                            .replace(/:\s*"([^"]*)"/g, ': <span style="color: #98c379;">"$1"</span>')
-                            // Numbers
-                            .replace(/:\s*(\d+)/g, ': <span style="color: #d19a66;">$1</span>')
-                            // Booleans
-                            .replace(/:\s*(true|false)/g, ': <span style="color: #56b6c2;">$1</span>')
-                            // Null
-                            .replace(/:\s*null/g, ': <span style="color: #5c6370;">null</span>');
-                    }
-                });
-            });
-        }
-    </script>
 </body>
 </html>
