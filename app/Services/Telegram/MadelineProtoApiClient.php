@@ -26,6 +26,70 @@ class MadelineProtoApiClient implements TelegramApiInterface
         return $this->madelineProto;
     }
 
+    /**
+     * Logout and clear the session
+     */
+    public function logout(): void
+    {
+        try {
+            $sessionFile = storage_path('app/' . config('telegram.session_file'));
+
+            // Try to logout properly if API is available
+            try {
+                if ($this->madelineProto !== null) {
+                    $this->madelineProto->logout();
+                }
+            } catch (\Exception $e) {
+                Log::info('Could not logout from API: ' . $e->getMessage());
+            }
+
+            // Clear the session files
+            if (file_exists($sessionFile)) {
+                // If it's a directory (MadelineProto 8.x)
+                if (is_dir($sessionFile)) {
+                    $this->deleteDirectory($sessionFile);
+                } else {
+                    // If it's a file (older versions)
+                    unlink($sessionFile);
+                }
+            }
+
+            // Clear any related files
+            $sessionFiles = glob($sessionFile . '*');
+            foreach ($sessionFiles as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                } elseif (is_dir($file)) {
+                    $this->deleteDirectory($file);
+                }
+            }
+
+            $this->madelineProto = null;
+            Log::info('Telegram session cleared successfully');
+        } catch (\Exception $e) {
+            Log::error('Error clearing Telegram session: ' . $e->getMessage());
+
+            throw new \RuntimeException('Failed to clear Telegram session: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Recursively delete a directory
+     */
+    private function deleteDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
+        }
+        rmdir($dir);
+    }
+
     private function initializeApi(): void
     {
         $isRestricted = $this->isRestrictedEnvironment();
@@ -43,10 +107,27 @@ class MadelineProtoApiClient implements TelegramApiInterface
         $sessionFile = storage_path('app/' . config('telegram.session_file'));
 
         try {
+            // Set environment variable to disable browser opening
+            putenv('MADELINE_BROWSER=none');
+
             $this->madelineProto = new API($sessionFile, $settings);
 
             if (!$isRestricted) {
-                $this->madelineProto->start();
+                try {
+                    // Try to get self info to check if we're authorized
+                    $this->madelineProto->getSelf();
+                } catch (\Throwable $e) {
+                    if (str_contains($e->getMessage(), 'LOGIN_REQUIRED') ||
+                        str_contains($e->getMessage(), 'SESSION_REVOKED') ||
+                        str_contains($e->getMessage(), 'AUTH_KEY_UNREGISTERED')) {
+                        // Clear the invalid session
+                        $this->logout();
+
+                        throw new \RuntimeException('Telegram authentication required. The bot session has expired or been revoked.');
+                    }
+
+                    throw $e;
+                }
             }
         } catch (\Exception $e) {
             $this->handleInitializationError($e, $isRestricted);
@@ -104,7 +185,44 @@ class MadelineProtoApiClient implements TelegramApiInterface
             $api = $this->getApiInstance();
 
             $info = $api->getInfo($channelUsername);
+
+            // Security restriction: Only allow public channels and supergroups
+            $type = $info['type'] ?? '';
+            if (!in_array($type, ['channel', 'supergroup'])) {
+                throw new \Exception('This API only supports public channels, not private chats or groups');
+            }
+
+            // Check if it's a public channel (has username)
+            if (!isset($info['Chat']['username']) || empty($info['Chat']['username'])) {
+                throw new \Exception('This API only supports public channels with usernames');
+            }
+
             $fullInfo = $api->getFullInfo($channelUsername);
+
+            // Log the full info for debugging
+            Log::info('Channel full info:', [
+                'channel' => $channelUsername,
+                'full_info_keys' => array_keys($fullInfo),
+                'full_keys' => isset($fullInfo['full']) ? array_keys($fullInfo['full']) : [],
+                'chat_keys' => isset($fullInfo['Chat']) ? array_keys($fullInfo['Chat']) : [],
+            ]);
+
+            // Try to get approximate total messages from last message ID
+            $approxTotalMessages = null;
+
+            try {
+                $lastMessages = $api->messages->getHistory([
+                    'peer' => $channelUsername,
+                    'limit' => 1,
+                    'offset_id' => 0,
+                ]);
+
+                if (!empty($lastMessages['messages'])) {
+                    $approxTotalMessages = $lastMessages['messages'][0]['id'] ?? null;
+                }
+            } catch (\Exception $e) {
+                Log::info('Could not get approximate message count: ' . $e->getMessage());
+            }
 
             return [
                 'id' => $info['bot_api_id'] ?? null,
@@ -113,10 +231,22 @@ class MadelineProtoApiClient implements TelegramApiInterface
                 'type' => $info['type'] ?? null,
                 'participants_count' => $fullInfo['full']['participants_count'] ?? null,
                 'about' => $fullInfo['full']['about'] ?? null,
+                'created_date' => $fullInfo['Chat']['date'] ?? null,
+                'approx_total_messages' => $approxTotalMessages,
             ];
 
         } catch (\Exception $e) {
-            Log::error('Error getting channel info: ' . $e->getMessage());
+            $message = $e->getMessage();
+            Log::error('Error getting channel info: ' . $message);
+
+            // Clear session and re-throw authentication errors
+            if (str_contains($message, 'AUTH_KEY_UNREGISTERED') ||
+                str_contains($message, 'SESSION_REVOKED') ||
+                str_contains($message, 'LOGIN_REQUIRED')) {
+                $this->logout();
+
+                throw $e;
+            }
 
             return null;
         }
@@ -157,9 +287,14 @@ class MadelineProtoApiClient implements TelegramApiInterface
 
         if (strpos($errorMessage, 'CHANNEL_PRIVATE') !== false) {
             Log::warning('Channel is private');
-        } elseif (strpos($errorMessage, 'SESSION_REVOKED') !== false) {
-            Log::error('Session revoked - need to re-authenticate');
-            $this->madelineProto = null;
+        } elseif (strpos($errorMessage, 'SESSION_REVOKED') !== false ||
+                  strpos($errorMessage, 'AUTH_KEY_UNREGISTERED') !== false ||
+                  strpos($errorMessage, 'LOGIN_REQUIRED') !== false) {
+            Log::error('Authentication error - clearing session and need to re-authenticate');
+            $this->logout();
+
+            // Re-throw authentication errors
+            throw $e;
         } elseif (strpos($errorMessage, 'IPC') !== false || strpos($errorMessage, 'open_basedir') !== false) {
             Log::error('IPC server error or open basedir restriction');
         }
