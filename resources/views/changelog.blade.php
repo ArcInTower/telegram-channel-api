@@ -1,20 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Changelog - Laravel Telegram API</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="font-sans antialiased bg-gray-50">
-    @include('partials.header')
+@extends('layouts.app')
 
-    <main class="container mx-auto px-4 py-8">
+@section('title', 'Changelog - Laravel Telegram API')
+
+@section('content')
     <h1 class="text-4xl font-bold mb-8 text-gray-800">Changelog</h1>
     
     <div class="prose max-w-none">
@@ -71,8 +59,4 @@
             </li>
         </ul>
     </div>
-    </main>
-
-    @include('partials.footer')
-</body>
-</html>
+@endsection
