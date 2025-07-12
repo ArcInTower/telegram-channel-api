@@ -3,6 +3,7 @@
 @section('title', 'Architecture - Laravel Telegram API')
 
 @section('content')
+<div class="mt-8">
         <h1 class="text-4xl font-bold mb-8 text-gray-800">Architecture & Design Decisions</h1>
         
         <div class="prose max-w-none">
@@ -279,6 +280,7 @@ $statsMiddleware = ['throttle:10,60'];   // 10 requests per hour</code></pre>
                 </div>
             </section>
         </div>
+</div>
 @endsection
 
 @push('scripts')

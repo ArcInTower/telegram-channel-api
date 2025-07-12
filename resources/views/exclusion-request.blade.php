@@ -3,7 +3,7 @@
 @section('title', 'Channel Exclusion Request')
 
 @section('content')
-<div class="max-w-2xl mx-auto">
+<div class="max-w-2xl mx-auto mt-8">
     <div class="bg-white rounded-lg shadow-lg p-8">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Channel Exclusion Request</h1>
         

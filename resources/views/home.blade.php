@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-        <div class="text-center mb-12 mt-12">
+        <div class="text-center mb-12 mt-8">
             <p class="text-2xl text-gray-600 mb-3">
                 Get real-time data and statistics from public Telegram channels
             </p>
@@ -43,7 +43,7 @@
                 <div class="flex gap-4 mb-4 items-end">
                     <div class="flex-1 flex flex-col gap-2">
                         <label class="text-sm text-gray-600">Channel username</label>
-                        <input type="text" id="channelInput" placeholder="e.g., python" value="orangeterapy" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
+                        <input type="text" id="channelInput" placeholder="e.g., techNews" value="exampleChannel" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
                     <button onclick="getLastMessage()" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transform hover:-translate-y-px transition-all whitespace-nowrap">Try it</button>
                 </div>
@@ -57,7 +57,7 @@
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-8">
                     <h3 class="text-gray-800 text-lg font-semibold mb-4">🚀 Quick Start</h3>
                     <p class="text-gray-600 text-sm leading-relaxed mb-2">Try with cURL:</p>
-                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl "{{ url('/api/v2/telegram/channels/python/messages/last-id') }}"</div>
+                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl "{{ url('/api/v2/telegram/channels/techNews/messages/last-id') }}"</div>
                 </div>
             </div>
 
@@ -75,7 +75,7 @@
                 <div class="flex gap-4 mb-4 items-end">
                     <div class="flex-[2_2_0%] flex flex-col gap-2">
                         <label class="text-sm text-gray-600">Channel username</label>
-                        <input type="text" id="statsChannelInput" placeholder="e.g., python" value="orangeterapy" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
+                        <input type="text" id="statsChannelInput" placeholder="e.g., techNews" value="exampleChannel" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
                     <div class="flex-1 flex flex-col gap-2">
                         <label class="text-sm text-gray-600">Days</label>
@@ -93,7 +93,7 @@
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-8">
                     <h3 class="text-gray-800 text-lg font-semibold mb-4">🚀 Quick Start</h3>
                     <p class="text-gray-600 text-sm leading-relaxed mb-2">Try with cURL:</p>
-                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl "{{ url('/api/v2/telegram/channels/python/statistics/7') }}"</div>
+                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl "{{ url('/api/v2/telegram/channels/techNews/statistics/7') }}"</div>
                 </div>
             </div>
 
@@ -120,7 +120,7 @@
                 <div class="space-y-4 mb-6">
                     <div>
                         <label class="text-sm text-gray-600 mb-2 block">Channels to compare (comma separated)</label>
-                        <input type="text" id="compareChannelsInput" placeholder="e.g., nuevomeneame, python, javascript" value="nuevomeneame, orangeterapy" 
+                        <input type="text" id="compareChannelsInput" placeholder="e.g., newsChannel, techChannel, scienceHub" value="newsChannel, techChannel" 
                                class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-purple-500 transition-colors">
                     </div>
                     <div class="flex gap-4 items-end">
@@ -149,7 +149,7 @@
                     <p class="text-gray-600 text-sm leading-relaxed mb-2">Try with cURL:</p>
                     <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl -X POST "{{ url('/api/v2/telegram/channels/compare') }}" \
   -H "Content-Type: application/json" \
-  -d '{"channels": ["nuevomeneame", "python"], "days": 7}'</div>
+  -d '{"channels": ["newsChannel", "techChannel"], "days": 7}'</div>
                 </div>
             </div>
         </div>
