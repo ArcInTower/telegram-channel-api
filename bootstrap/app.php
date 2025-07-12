@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AnonymizeUsers;
 use App\Http\Middleware\CheckBlockedChannel;
 use App\Http\Middleware\EnsureJsonResponse;
 use Illuminate\Foundation\Application;
@@ -17,10 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             EnsureJsonResponse::class,
             CheckBlockedChannel::class,
+            AnonymizeUsers::class,
         ]);
 
         $middleware->alias([
             'check.blocked.channel' => CheckBlockedChannel::class,
+            'anonymize.users' => AnonymizeUsers::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

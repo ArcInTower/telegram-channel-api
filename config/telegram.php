@@ -41,4 +41,16 @@ return [
     |
     */
     'blocked_channels' => array_map('trim', array_filter(explode(',', env('TELEGRAM_BLOCKED_CHANNELS', '')))),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Anonymized Users
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated list of usernames that should be anonymized
+    | Example: 'user1,user2,user3'
+    | These users will appear as first letter + asterisks + last letter
+    |
+    */
+    'anonymized_users' => array_map('trim', array_filter(explode(',', env('TELEGRAM_ANONYMIZED_USERS', '')))),
 ];
