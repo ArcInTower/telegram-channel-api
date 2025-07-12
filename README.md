@@ -28,6 +28,20 @@ php artisan telegram:login
 php artisan serve
 ```
 
+## 🧪 Testing
+
+By default, tests run without hitting external services:
+
+```bash
+php artisan test
+```
+
+To run integration tests (may disconnect Telegram session):
+
+```bash
+php artisan test:integration
+```
+
 ## 📖 Documentation
 
 For complete documentation including:
