@@ -21,6 +21,10 @@ Route::get('/exclusion-request', function () {
     return view('exclusion-request');
 })->name('exclusion.request');
 
+Route::get('/anonymization-request', function () {
+    return view('anonymization-request');
+})->name('anonymization.request');
+
 // Telegram Authentication Routes
 Route::prefix('telegram-auth')->group(function () {
     Route::get('/', [TelegramAuthController::class, 'showLoginForm'])->name('telegram.login');
