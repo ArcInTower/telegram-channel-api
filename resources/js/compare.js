@@ -319,18 +319,17 @@ function createErrorCard(error) {
 function createComparisonCharts(comparisons) {
     const labels = comparisons.map(c => '@' + c.channel);
     
-    // Key Metrics Chart
-    const ctx1 = document.getElementById('keyMetricsChart').getContext('2d');
-    
-    if (keyMetricsChart) {
-        keyMetricsChart.destroy();
-    }
-    
     const messages = comparisons.map(c => c.total_messages);
     const users = comparisons.map(c => c.active_users);
     const messagesPerUser = comparisons.map(c => c.active_users > 0 ? Math.round((c.total_messages / c.active_users) * 10) / 10 : 0);
     
-    // Destroy old chart and create 3 separate charts with independent scales
+    // Destroy old chart if it exists
+    if (keyMetricsChart) {
+        keyMetricsChart.destroy();
+        keyMetricsChart = null;
+    }
+    
+    // Replace the keyMetricsChart container with 3 separate charts
     const keyMetricsContainer = document.getElementById('keyMetricsChart').parentElement;
     keyMetricsContainer.innerHTML = `
         <h3 class="text-xl font-bold text-gray-800 mb-4">Total Messages Comparison</h3>
