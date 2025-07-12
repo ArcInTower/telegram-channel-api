@@ -9,7 +9,7 @@ class ChangelogController extends Controller
         $changelog = [
             [
                 'version' => '2.0.0',
-                'date' => '2025-01-10',
+                'date' => '2025-07-10',
                 'type' => 'major',
                 'changes' => [
                     'Added' => [
@@ -17,6 +17,7 @@ class ChangelogController extends Controller
                         'Channel statistics endpoint: GET /api/v2/telegram/channels/{channel}/statistics/{days}',
                         'Channel info endpoint: GET /api/v2/telegram/channels/{channel}',
                         'Statistics page with visual charts at /statistics/{channel}/{days}',
+                        'Channel comparison endpoint: POST /api/v2/telegram/channels/compare',
                     ],
                     'Changed' => [
                         'Endpoint renamed to /messages/last-id for clarity',
