@@ -27,9 +27,11 @@ class CheckBlockedChannel
             // Check if channel is blocked
             if (in_array($channel, array_map([$this, 'normalizeChannel'], $blockedChannels))) {
                 return response()->json([
+                    'jsonapi' => ['version' => '1.1'],
                     'errors' => [
                         [
                             'status' => '403',
+                            'code' => 'CHANNEL_BLOCKED',
                             'title' => 'Access Denied',
                             'detail' => 'This channel is not available for access.',
                         ],
@@ -47,14 +49,17 @@ class CheckBlockedChannel
             foreach ($channels as $channel) {
                 if (in_array($this->normalizeChannel($channel), $normalizedBlocked)) {
                     return response()->json([
+                        'jsonapi' => ['version' => '1.1'],
                         'errors' => [
                             [
                                 'status' => '403',
+                                'code' => 'CHANNEL_BLOCKED',
                                 'title' => 'Access Denied',
                                 'detail' => "Channel '@{$channel}' is not available for access.",
                             ],
                         ],
-                    ], 403);
+                    ], 403)
+                        ->header('Content-Type', 'application/vnd.api+json');
                 }
             }
         }
@@ -69,7 +74,7 @@ class CheckBlockedChannel
     {
         // Remove @ symbol and convert to lowercase
         $normalized = ltrim($channel, '@');
-        
+
         return strtolower($normalized);
     }
 }

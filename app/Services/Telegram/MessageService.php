@@ -16,7 +16,7 @@ class MessageService extends CacheableService
         $this->cacheTtl = config('telegram.cache_ttl', 300);
     }
 
-    public function getLastMessageId(string $channelUsername): array
+    public function getLastMessageId(string $channelUsername): ?array
     {
         $channelUsername = $this->normalizeUsername($channelUsername);
         $cacheKey = 'telegram_channel:' . $channelUsername;
@@ -118,5 +118,15 @@ class MessageService extends CacheableService
     private function normalizeUsername(string $username): string
     {
         return ltrim(strtolower($username), '@');
+    }
+
+    /**
+     * Get cache metadata for the last request
+     */
+    public function getCacheMetadataForChannel(string $channelUsername): array
+    {
+        $channelUsername = $this->normalizeUsername($channelUsername);
+        $cacheKey = 'telegram_channel:' . $channelUsername;
+        return $this->getCacheMetadata($cacheKey, $this->cacheTtl);
     }
 }

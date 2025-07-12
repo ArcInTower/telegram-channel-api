@@ -48,6 +48,11 @@ class EnsureJsonResponse
                 \Log::warning('Unexpected output in API request', ['output' => substr($output, 0, 500)]);
             }
 
+            // Set JSON:API content type for API responses
+            if ($request->is('api/*') && $response->headers->get('content-type') === null) {
+                $response->headers->set('Content-Type', 'application/vnd.api+json');
+            }
+
             return $response;
         } catch (\Throwable $e) {
             ob_end_clean();
