@@ -43,13 +43,14 @@ class MessageServiceTest extends TestCase
 
         // Put data in cache
         Cache::put('telegram_channel:' . $channelUsername, [
+            'channel' => $channelUsername,
             'last_message_id' => $expectedMessageId,
-            'last_checked_at' => now()->toISOString(),
         ], 300);
 
         $result = $this->service->getLastMessageId($channelUsername);
 
-        $this->assertEquals($expectedMessageId, $result);
+        $this->assertIsArray($result);
+        $this->assertEquals($expectedMessageId, $result['last_message_id']);
     }
 
     public function test_get_last_message_id_fetches_from_api_when_cache_expired()
@@ -78,7 +79,8 @@ class MessageServiceTest extends TestCase
 
         $result = $this->service->getLastMessageId($channelUsername);
 
-        $this->assertEquals($expectedMessageId, $result);
+        $this->assertIsArray($result);
+        $this->assertEquals($expectedMessageId, $result['last_message_id']);
 
         // Verify it was cached
         $cachedData = Cache::get('telegram_channel:' . $channelUsername);

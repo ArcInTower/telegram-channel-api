@@ -31,7 +31,7 @@ class StatisticsControllerTest extends TestCase
 
     public function test_get_statistics_returns_success_response()
     {
-        $channel = 'testchannel';
+        $channel = 'php';
         $days = 7;
         $stats = [
             'period' => [
@@ -81,7 +81,7 @@ class StatisticsControllerTest extends TestCase
 
     public function test_get_statistics_with_custom_days()
     {
-        $channel = 'testchannel';
+        $channel = 'php';
         $days = 14;
         $stats = ['summary' => ['total_messages' => 300]];
 
@@ -103,7 +103,7 @@ class StatisticsControllerTest extends TestCase
 
     public function test_get_statistics_validates_days_parameter()
     {
-        $channel = 'testchannel';
+        $channel = 'php';
 
         // Test with days > 15 (max allowed)
         $response = $this->getJson("/api/v2/telegram/channels/{$channel}/statistics/16");

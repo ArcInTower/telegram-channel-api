@@ -46,7 +46,10 @@ class TelegramChannelServiceTest extends TestCase
             ->shouldReceive('getLastMessageId')
             ->with($channel)
             ->once()
-            ->andReturn($expectedId);
+            ->andReturn([
+                'channel' => $channel,
+                'last_message_id' => $expectedId,
+            ]);
 
         $result = $this->service->getLastMessageId($channel);
 
@@ -65,9 +68,18 @@ class TelegramChannelServiceTest extends TestCase
             ->once()
             ->andReturn($expectedStats);
 
+        $this->statisticsService
+            ->shouldReceive('getCacheMetadataForStats')
+            ->with($channel, $days)
+            ->once()
+            ->andReturn(['from_cache' => false, 'cached_at' => null]);
+
         $result = $this->service->getChannelStatistics($channel, $days);
 
-        $this->assertEquals($expectedStats, $result);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('_cache_meta', $result);
+        $this->assertEquals($expectedStats, $result['data']);
     }
 
     public function test_get_channel_info_includes_last_message_id()
@@ -90,7 +102,10 @@ class TelegramChannelServiceTest extends TestCase
             ->shouldReceive('getLastMessageId')
             ->with($channel)
             ->once()
-            ->andReturn($lastMessageId);
+            ->andReturn([
+                'channel' => $channel,
+                'last_message_id' => $lastMessageId,
+            ]);
 
         $result = $this->service->getChannelInfo($channel);
 

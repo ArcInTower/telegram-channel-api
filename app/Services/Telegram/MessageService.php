@@ -127,6 +127,7 @@ class MessageService extends CacheableService
     {
         $channelUsername = $this->normalizeUsername($channelUsername);
         $cacheKey = 'telegram_channel:' . $channelUsername;
+
         return $this->getCacheMetadata($cacheKey, $this->cacheTtl);
     }
 }

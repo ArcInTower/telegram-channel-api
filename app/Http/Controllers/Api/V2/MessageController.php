@@ -26,11 +26,18 @@ class MessageController extends Controller
             $channel = $request->getChannel();
             $result = $this->messageService->getLastMessageId($channel);
 
-            if ($result === null || (is_array($result) && isset($result['data']) && $result['data'] === null)) {
+            if ($result === null) {
                 return (new ErrorResponse('Channel not found or no messages available', 404))->toResponse();
             }
 
-            return new MessageResource($result);
+            // Get cache metadata separately
+            $cacheMetadata = $this->messageService->getCacheMetadataForChannel($channel);
+
+            // Pass data with cache metadata in the expected format
+            return new MessageResource([
+                'data' => $result,
+                '_cache_meta' => $cacheMetadata,
+            ]);
 
         } catch (\RuntimeException $e) {
             Log::error('Error in V2 getLastMessageId: ' . $e->getMessage());

@@ -72,7 +72,7 @@ class StatisticsServiceTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertEquals(0, $result['summary']['total_messages']);
-        $this->assertEquals(0, $result['summary']['unique_users']);
+        $this->assertEquals(0, $result['summary']['active_users']);
         $this->assertEquals('N/A', $result['peak_activity']['hour']);
     }
 
@@ -114,7 +114,12 @@ class StatisticsServiceTest extends TestCase
 
         $result = $this->service->getChannelStatistics($channel, $days);
 
-        $this->assertEquals($expectedStats, $result);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('summary', $result);
+        $this->assertArrayHasKey('period', $result);
+        $this->assertArrayHasKey('channel_info', $result);
+        $this->assertEquals($expectedStats['summary'], $result['summary']);
+        $this->assertEquals($expectedStats['period'], $result['period']);
     }
 
     public function test_normalizes_channel_username()

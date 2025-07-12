@@ -24,7 +24,7 @@ class StatisticsCalculatorTest extends TestCase
         $result = $this->calculator->calculate([], $startDate, $endDate);
 
         $this->assertEquals(0, $result['summary']['total_messages']);
-        $this->assertEquals(0, $result['summary']['unique_users']);
+        $this->assertEquals(0, $result['summary']['active_users']);
         $this->assertEquals(0, $result['summary']['total_replies']);
         $this->assertEquals(0, $result['summary']['reply_rate']);
         $this->assertEmpty($result['top_users']);
@@ -57,7 +57,7 @@ class StatisticsCalculatorTest extends TestCase
         $result = $this->calculator->calculate($messages, $startDate, $endDate);
 
         $this->assertEquals(3, $result['summary']['total_messages']);
-        $this->assertEquals(2, $result['summary']['unique_users']);
+        $this->assertEquals(2, $result['summary']['active_users']);
         $this->assertEquals(1, $result['summary']['total_replies']);
         $this->assertGreaterThan(0, $result['summary']['reply_rate']);
         $this->assertCount(2, $result['top_users']);

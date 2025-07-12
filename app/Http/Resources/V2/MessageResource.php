@@ -16,7 +16,7 @@ class MessageResource extends BaseResource
         return [
             'data' => [
                 'type' => 'channel-message',
-                'id' => $data['channel'] ?? '',
+                'id' => $data['channel'] ?? 'unknown',
                 'attributes' => [
                     'last_message_id' => $data['last_message_id'] ?? null,
                 ],

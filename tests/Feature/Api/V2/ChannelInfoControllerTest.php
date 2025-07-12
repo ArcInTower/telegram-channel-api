@@ -30,11 +30,11 @@ class ChannelInfoControllerTest extends TestCase
 
     public function test_get_channel_info_returns_success_response()
     {
-        $channel = 'testchannel';
+        $channel = 'javascript';
         $info = [
             'id' => 123456,
             'title' => 'Test Channel',
-            'username' => 'testchannel',
+            'username' => 'javascript',
             'type' => 'channel',
             'participants_count' => 1000,
             'about' => 'Test channel description',

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api\V2;
 
+use App\Services\Telegram\MessageService;
 use App\Services\TelegramChannelService;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
@@ -10,6 +11,7 @@ use Tests\TestCase;
 class MessageControllerTest extends TestCase
 {
     private $telegramService;
+    private $messageService;
 
     protected function setUp(): void
     {
@@ -17,6 +19,9 @@ class MessageControllerTest extends TestCase
 
         $this->telegramService = Mockery::mock(TelegramChannelService::class);
         $this->app->instance(TelegramChannelService::class, $this->telegramService);
+
+        $this->messageService = Mockery::mock(MessageService::class);
+        $this->app->instance(MessageService::class, $this->messageService);
 
         // Clear cache before each test
         Cache::flush();
@@ -30,20 +35,27 @@ class MessageControllerTest extends TestCase
 
     public function test_get_last_message_returns_success_response()
     {
-        $channel = 'testchannel';
+        $channel = 'laravel';
         $messageId = 12345;
 
-        $this->telegramService
+        $this->messageService
             ->shouldReceive('getLastMessageId')
             ->with($channel)
             ->once()
-            ->andReturn($messageId);
+            ->andReturn([
+                'channel' => $channel,
+                'last_message_id' => $messageId,
+            ]);
 
-        // Simulate cached data
-        Cache::put('telegram_channel:' . $channel, [
-            'last_message_id' => $messageId,
-            'last_checked_at' => now()->toISOString(),
-        ], 300);
+        $this->messageService
+            ->shouldReceive('getCacheMetadataForChannel')
+            ->with($channel)
+            ->once()
+            ->andReturn([
+                'from_cache' => false,
+                'cached_at' => null,
+                'cache_ttl_seconds' => 300,
+            ]);
 
         $response = $this->getJson("/api/v2/telegram/channels/{$channel}/messages/last-id");
 
@@ -54,10 +66,6 @@ class MessageControllerTest extends TestCase
                     'id',
                     'attributes' => [
                         'last_message_id',
-                        'cache' => [
-                            'from_cache',
-                            'age_seconds',
-                        ],
                     ],
                 ],
                 'meta' => [
@@ -81,9 +89,9 @@ class MessageControllerTest extends TestCase
 
     public function test_get_last_message_returns_404_when_channel_not_found()
     {
-        $channel = 'notfound';
+        $channel = 'thisChannelDefinitelyDoesNotExist123456789';
 
-        $this->telegramService
+        $this->messageService
             ->shouldReceive('getLastMessageId')
             ->with($channel)
             ->once()

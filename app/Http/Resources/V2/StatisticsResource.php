@@ -23,7 +23,10 @@ class StatisticsResource extends BaseResource
                     'statistics' => $this->extractStatisticsData($originalResource['stats']),
                 ],
             ],
-            'meta' => $this->buildMetaFromStats($originalResource['stats']),
+            'meta' => array_merge(
+                $this->buildMetaFromStats($originalResource['stats']),
+                ['period_days' => $originalResource['days'] ?? 7],
+            ),
             'jsonapi' => [
                 'version' => '1.1',
             ],

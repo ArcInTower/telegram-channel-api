@@ -3,12 +3,13 @@
 namespace App\Services\Telegram;
 
 use App\Contracts\TelegramApiInterface;
+use App\Services\CacheableService;
 use App\Services\Telegram\Statistics\StatisticsCalculator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-class StatisticsService
+class StatisticsService extends CacheableService
 {
     public function __construct(
         private TelegramApiInterface $apiClient,
@@ -24,98 +25,46 @@ class StatisticsService
             $cacheKey = "telegram_stats:{$channelUsername}:{$days}";
             $cacheTtl = config('telegram.statistics_cache_ttl', 3600); // 1 hour default
 
-            // Try to get from cache first
-            $cacheData = Cache::get($cacheKey);
-            $cacheMetaKey = $cacheKey . ':meta';
-            $cacheMeta = Cache::get($cacheMetaKey);
+            return $this->getWithCache($cacheKey, $cacheTtl, function () use ($channelUsername, $days) {
+                Log::info("Getting fresh statistics for channel: {$channelUsername} for {$days} days");
 
-            if ($cacheData !== null) {
-                Log::info("Returning cached statistics for channel: {$channelUsername} for {$days} days");
+                $channelPeer = '@' . ltrim($channelUsername, '@');
 
-                // If metadata doesn't exist (old cache), create it now
-                if ($cacheMeta === null) {
-                    $cacheMeta = ['cached_at' => now()->toISOString()];
-                    Cache::put($cacheMetaKey, $cacheMeta, $cacheTtl);
+                $info = $this->apiClient->getChannelInfo($channelPeer);
+
+                if (!$info || !in_array($info['type'], ['channel', 'supergroup'])) {
+                    Log::warning("Not a public channel: {$channelUsername} (type: " . ($info['type'] ?? 'unknown') . ')');
+
+                    return null;
                 }
 
-                // Return cached data with metadata
-                return [
-                    'data' => $cacheData,
-                    '_cache_meta' => [
-                        'cached_at' => $cacheMeta['cached_at'],
-                        'from_cache' => true,
-                        'cache_ttl' => $cacheTtl,
-                    ],
+                $endDate = now();
+                $startDate = now()->subDays($days);
+
+                $messages = $this->fetchMessagesInDateRange($channelPeer, $startDate, $endDate);
+
+                if (empty($messages['allMessages'])) {
+                    $stats = $this->createEmptyStatistics($startDate, $endDate, $days);
+                } else {
+                    $stats = $this->calculator->calculate(
+                        $messages['allMessages'],
+                        $startDate,
+                        $endDate,
+                        $messages['userInfoCache'],
+                    );
+                }
+
+                // Add channel info to statistics
+                $stats['channel_info'] = [
+                    'title' => $info['title'] ?? null,
+                    'total_participants' => $info['participants_count'] ?? null,
+                    'type' => $info['type'] ?? null,
+                    'created_at' => isset($info['created_date']) ? Carbon::createFromTimestamp($info['created_date'])->toISOString() : null,
+                    'approx_total_messages' => $info['approx_total_messages'] ?? null,
                 ];
-            }
 
-            Log::info("Getting fresh statistics for channel: {$channelUsername} for {$days} days");
-
-            $channelPeer = '@' . ltrim($channelUsername, '@');
-
-            $info = $this->apiClient->getChannelInfo($channelPeer);
-
-            if (!$info || !in_array($info['type'], ['channel', 'supergroup'])) {
-                Log::warning("Not a public channel: {$channelUsername} (type: " . ($info['type'] ?? 'unknown') . ')');
-
-                // Cache the null result to prevent repeated API calls
-                Cache::put($cacheKey, null, $cacheTtl);
-                Cache::put($cacheMetaKey, ['cached_at' => now()->toISOString()], $cacheTtl);
-                Log::info("Cached null result for non-existent channel: {$channelUsername}");
-
-                return [
-                    'data' => null,
-                    '_cache_meta' => [
-                        'cached_at' => null,
-                        'from_cache' => false,
-                        'cache_ttl' => $cacheTtl,
-                    ],
-                ];
-            }
-
-            $endDate = now();
-            $startDate = now()->subDays($days);
-
-            $messages = $this->fetchMessagesInDateRange($channelPeer, $startDate, $endDate);
-
-            if (empty($messages['allMessages'])) {
-                $stats = $this->createEmptyStatistics($startDate, $endDate, $days);
-            } else {
-                $stats = $this->calculator->calculate(
-                    $messages['allMessages'],
-                    $startDate,
-                    $endDate,
-                    $messages['userInfoCache'],
-                );
-            }
-
-            // Add channel info to statistics
-            $stats['channel_info'] = [
-                'title' => $info['title'] ?? null,
-                'total_participants' => $info['participants_count'] ?? null,
-                'type' => $info['type'] ?? null,
-                'created_at' => isset($info['created_date']) ? Carbon::createFromTimestamp($info['created_date'])->toISOString() : null,
-                'approx_total_messages' => $info['approx_total_messages'] ?? null,
-            ];
-
-            // Cache only the statistics data
-            Cache::put($cacheKey, $stats, $cacheTtl);
-
-            // Cache metadata separately
-            $cacheMetaKey = $cacheKey . ':meta';
-            Cache::put($cacheMetaKey, ['cached_at' => now()->toISOString()], $cacheTtl);
-
-            Log::info("Cached statistics for channel: {$channelUsername} for {$cacheTtl} seconds");
-
-            // Return without from_cache flag for fresh data
-            return [
-                'data' => $stats,
-                '_cache_meta' => [
-                    'cached_at' => null,
-                    'from_cache' => false,
-                    'cache_ttl' => $cacheTtl,
-                ],
-            ];
+                return $stats;
+            });
 
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -278,5 +227,17 @@ class StatisticsService
     private function normalizeUsername(string $username): string
     {
         return ltrim(strtolower($username), '@');
+    }
+
+    /**
+     * Get cache metadata for the last request
+     */
+    public function getCacheMetadataForStats(string $channelUsername, int $days): array
+    {
+        $channelUsername = $this->normalizeUsername($channelUsername);
+        $cacheKey = "telegram_stats:{$channelUsername}:{$days}";
+        $cacheTtl = config('telegram.statistics_cache_ttl', 3600);
+
+        return $this->getCacheMetadata($cacheKey, $cacheTtl);
     }
 }

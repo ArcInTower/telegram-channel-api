@@ -26,7 +26,7 @@ class StatisticsController extends Controller
 
             $stats = $this->telegramService->getChannelStatistics($channel, $days);
 
-            if ($stats === null || (is_array($stats) && isset($stats['data']) && $stats['data'] === null)) {
+            if ($stats === null) {
                 return (new ErrorResponse('Channel not found or unable to retrieve messages', 404))->toResponse();
             }
 

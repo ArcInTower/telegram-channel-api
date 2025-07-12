@@ -14,9 +14,9 @@ abstract class CacheableService
      * @param  int  $cacheTtl  Cache TTL in seconds
      * @param  callable  $dataFetcher  Function that fetches fresh data
      *
-     * @return array Always returns array with 'data' and '_cache_meta'
+     * @return mixed Returns the cached or fresh data directly
      */
-    protected function getWithCache(string $cacheKey, int $cacheTtl, callable $dataFetcher): array
+    protected function getWithCache(string $cacheKey, int $cacheTtl, callable $dataFetcher): mixed
     {
         // Try to get from cache first
         $cachedData = Cache::get($cacheKey);
@@ -32,15 +32,8 @@ abstract class CacheableService
                 Cache::put($cacheMetaKey, $cacheMeta, $cacheTtl);
             }
 
-            // Return cached data with metadata
-            return [
-                'data' => $cachedData,
-                '_cache_meta' => [
-                    'cached_at' => $cacheMeta['cached_at'],
-                    'from_cache' => true,
-                    'cache_ttl' => $cacheTtl,
-                ],
-            ];
+            // Return only the cached data
+            return $cachedData;
         }
 
         Log::info("Cache miss for key: {$cacheKey}, fetching fresh data");
@@ -56,15 +49,8 @@ abstract class CacheableService
                 Log::info("Cached data for key: {$cacheKey} for {$cacheTtl} seconds");
             }
 
-            // Return fresh data without from_cache flag
-            return [
-                'data' => $freshData,
-                '_cache_meta' => [
-                    'cached_at' => null,
-                    'from_cache' => false,
-                    'cache_ttl' => $cacheTtl,
-                ],
-            ];
+            // Return only the fresh data
+            return $freshData;
 
         } catch (\Exception $e) {
             Log::error("Error fetching data for cache key {$cacheKey}: " . $e->getMessage());
@@ -104,5 +90,29 @@ abstract class CacheableService
     protected function shouldCacheErrors(): bool
     {
         return true;
+    }
+
+    /**
+     * Get cache metadata for a specific key
+     */
+    protected function getCacheMetadata(string $cacheKey, int $cacheTtl): array
+    {
+        $cacheMetaKey = $cacheKey . ':meta';
+        $cacheMeta = Cache::get($cacheMetaKey);
+        $cachedData = Cache::get($cacheKey);
+
+        if ($cachedData !== null && $cacheMeta !== null) {
+            return [
+                'from_cache' => true,
+                'cached_at' => $cacheMeta['cached_at'],
+                'cache_ttl_seconds' => $cacheTtl,
+            ];
+        }
+
+        return [
+            'from_cache' => false,
+            'cached_at' => null,
+            'cache_ttl_seconds' => $cacheTtl,
+        ];
     }
 }
