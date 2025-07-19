@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArchitectureController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\PollsViewController;
 use App\Http\Controllers\TelegramAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,7 @@ Route::get('/', function () {
 Route::get('/changelog', [ChangelogController::class, 'index'])->name('changelog');
 Route::get('/architecture', [ArchitectureController::class, 'index'])->name('architecture');
 Route::get('/statistics/{channel}/{days?}', [StatisticsController::class, 'show'])->name('statistics');
+Route::get('/polls/{channel}/{period?}', [PollsViewController::class, 'show'])->name('polls');
 Route::get('/compare', function () {
     return view('compare');
 })->name('compare')->middleware('check.blocked.channel');

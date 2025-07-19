@@ -3,6 +3,7 @@
 use App\Http\Middleware\AnonymizeUsers;
 use App\Http\Middleware\CheckBlockedChannel;
 use App\Http\Middleware\EnsureJsonResponse;
+use App\Http\Middleware\ValidateChannelSecurity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(append: [
             EnsureJsonResponse::class,
+            ValidateChannelSecurity::class,
             CheckBlockedChannel::class,
             AnonymizeUsers::class,
         ]);
@@ -24,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'check.blocked.channel' => CheckBlockedChannel::class,
             'anonymize.users' => AnonymizeUsers::class,
+            'validate.channel.security' => ValidateChannelSecurity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V2\ChannelInfoController;
 use App\Http\Controllers\Api\V2\CompareController;
 use App\Http\Controllers\Api\V2\MessageController;
 use App\Http\Controllers\Api\V2\StatisticsController;
+use App\Http\Controllers\Api\V2\PollController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -61,6 +62,16 @@ Route::prefix('v2/telegram')->group(function () {
             ->middleware($statsMiddleware)
             ->where('days', '[0-9]+')
             ->name('v2.telegram.channel.statistics.days');
+
+        // Polls endpoints
+        Route::get('/polls', [PollController::class, 'channelPolls'])
+            ->middleware($channelMiddleware)
+            ->name('v2.telegram.channel.polls');
+
+        Route::get('/polls/{messageId}', [PollController::class, 'getPoll'])
+            ->middleware($channelMiddleware)
+            ->where('messageId', '[0-9]+')
+            ->name('v2.telegram.channel.poll');
     });
 
     // Compare multiple channels
