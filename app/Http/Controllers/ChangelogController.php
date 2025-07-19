@@ -8,6 +8,25 @@ class ChangelogController extends Controller
     {
         $changelog = [
             [
+                'version' => '2.1.0',
+                'date' => '2025-07-19',
+                'type' => 'minor',
+                'changes' => [
+                    'Added' => [
+                        'Reactions API endpoint: GET /api/v2/telegram/channels/{channel}/reactions',
+                        'Message reactions endpoint: GET /api/v2/telegram/channels/{channel}/messages/{messageId}/reactions',
+                        'Dynamic cache TTL based on period for better performance',
+                    ],
+                    'Changed' => [
+                        'Optimized reactions API to fetch fewer messages based on period',
+                        'Cache TTL now varies by period (5 min for 1hour, up to 24h for 1year)',
+                    ],
+                    'Fixed' => [
+                        'Authentication error handling across all endpoints',
+                    ],
+                ],
+            ],
+            [
                 'version' => '2.0.0',
                 'date' => '2025-07-10',
                 'type' => 'major',
@@ -16,11 +35,10 @@ class ChangelogController extends Controller
                         'New v2 API with JSON:API v1.1 specification',
                         'Channel statistics endpoint: GET /api/v2/telegram/channels/{channel}/statistics/{days}',
                         'Channel info endpoint: GET /api/v2/telegram/channels/{channel}',
-                        'Statistics page with visual charts at /statistics/{channel}/{days}',
                         'Channel comparison endpoint: POST /api/v2/telegram/channels/compare',
+                        'Polls API endpoints: GET /api/v2/telegram/channels/{channel}/polls',
                     ],
                     'Changed' => [
-                        'Endpoint renamed to /messages/last-id for clarity',
                         'Statistics limited to 15 days maximum',
                         'Statistics results cached for 1 hour',
                     ],

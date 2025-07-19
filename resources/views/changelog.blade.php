@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Changelog - Laravel Telegram API')
+@section('title', 'Changelog - Telegram Analytics API')
 
 @section('content')
 <div class="mt-8">
@@ -8,7 +8,7 @@
     
     <div class="prose max-w-none">
         <p class="text-gray-600 mb-8">
-            All notable changes to the Laravel Telegram Channel API will be documented here.
+            All notable changes to the Telegram Analytics API will be documented here.
         </p>
         
         @foreach($changelog as $release)
