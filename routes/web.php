@@ -5,6 +5,7 @@ use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\PollsViewController;
 use App\Http\Controllers\ReactionsViewController;
+use App\Http\Controllers\TopContributorsViewController;
 use App\Http\Controllers\TelegramAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,7 @@ Route::get('/architecture', [ArchitectureController::class, 'index'])->name('arc
 Route::get('/statistics/{channel}/{days?}', [StatisticsController::class, 'show'])->name('statistics');
 Route::get('/polls/{channel}/{period?}', [PollsViewController::class, 'show'])->name('polls');
 Route::get('/reactions/{channel?}/{period?}', [ReactionsViewController::class, 'index'])->name('reactions');
+Route::get('/top-contributors/{channel}/{days?}', [TopContributorsViewController::class, 'show'])->name('top-contributors');
 Route::get('/compare', function () {
     return view('compare');
 })->name('compare')->middleware('check.blocked.channel');

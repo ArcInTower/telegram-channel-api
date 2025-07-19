@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V2\MessageController;
 use App\Http\Controllers\Api\V2\StatisticsController;
 use App\Http\Controllers\Api\V2\PollController;
 use App\Http\Controllers\Api\V2\ReactionController;
+use App\Http\Controllers\Api\V2\TopContributorsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +80,10 @@ Route::prefix('v2/telegram')->group(function () {
             ->middleware($channelMiddleware)
             ->name('v2.telegram.channel.reactions');
 
+        // Top contributors endpoints
+        Route::get('/top-contributors', [TopContributorsController::class, 'channelTopContributors'])
+            ->middleware($channelMiddleware)
+            ->name('v2.telegram.channel.top-contributors');
 
     });
 

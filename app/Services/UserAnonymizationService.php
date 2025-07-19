@@ -9,8 +9,12 @@ class UserAnonymizationService
     /**
      * Check if a username should be anonymized
      */
-    public function shouldAnonymize(string $username): bool
+    public function shouldAnonymize(?string $username): bool
     {
+        if ($username === null || $username === '') {
+            return false;
+        }
+        
         $anonymizedUsers = Config::get('telegram.anonymized_users', []);
         $normalizedUsername = $this->normalizeUsername($username);
 
@@ -20,8 +24,12 @@ class UserAnonymizationService
     /**
      * Anonymize a username by showing first and last letter with asterisks
      */
-    public function anonymize(string $username): string
+    public function anonymize(?string $username): string
     {
+        if ($username === null || $username === '') {
+            return '';
+        }
+        
         if (!$this->shouldAnonymize($username)) {
             return $username;
         }
@@ -74,7 +82,7 @@ class UserAnonymizationService
         $processed = [];
 
         foreach ($data as $key => $value) {
-            if ($this->isUsernameField($key)) {
+            if ($this->isUsernameField($key) && is_string($value)) {
                 $processed[$key] = $this->anonymize($value);
             } elseif (is_array($value) || is_object($value)) {
                 $processed[$key] = $this->processData($value);
@@ -94,7 +102,7 @@ class UserAnonymizationService
         $processed = clone $data;
 
         foreach (get_object_vars($data) as $key => $value) {
-            if ($this->isUsernameField($key)) {
+            if ($this->isUsernameField($key) && is_string($value)) {
                 $processed->$key = $this->anonymize($value);
             } elseif (is_array($value) || is_object($value)) {
                 $processed->$key = $this->processData($value);
@@ -119,6 +127,7 @@ class UserAnonymizationService
             'updated_by',
             'user',
             'name',
+            'display_name',
         ];
 
         return in_array(strtolower($fieldName), $usernameFields);

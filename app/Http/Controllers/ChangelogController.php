@@ -15,6 +15,7 @@ class ChangelogController extends Controller
                     'Added' => [
                         'Reactions API endpoint: GET /api/v2/telegram/channels/{channel}/reactions',
                         'Polls API endpoint: GET /api/v2/telegram/channels/{channel}/polls',
+                        'Top Contributors API endpoint (BETA): GET /api/v2/telegram/channels/{channel}/top-contributors',
                         'Dynamic cache TTL based on period for better performance',
                     ],
                     'Changed' => [
