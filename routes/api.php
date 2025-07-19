@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V2\CompareController;
 use App\Http\Controllers\Api\V2\MessageController;
 use App\Http\Controllers\Api\V2\StatisticsController;
 use App\Http\Controllers\Api\V2\PollController;
+use App\Http\Controllers\Api\V2\ReactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +73,17 @@ Route::prefix('v2/telegram')->group(function () {
             ->middleware($channelMiddleware)
             ->where('messageId', '[0-9]+')
             ->name('v2.telegram.channel.poll');
+
+        // Reactions endpoints
+        Route::get('/reactions', [ReactionController::class, 'channelReactions'])
+            ->middleware($channelMiddleware)
+            ->name('v2.telegram.channel.reactions');
+
+
+        Route::get('/messages/{messageId}/reactions', [ReactionController::class, 'messageReactions'])
+            ->middleware($channelMiddleware)
+            ->where('messageId', '[0-9]+')
+            ->name('v2.telegram.channel.message.reactions');
     });
 
     // Compare multiple channels

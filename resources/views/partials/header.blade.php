@@ -1,7 +1,7 @@
-<header class="bg-white shadow-sm border-b border-gray-200">
+<header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4">
         <div class="flex justify-between items-center py-4">
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-800">🛸 Telegram Channel API</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-800">🛸 Telegram Analytics API</h1>
             
             <!-- Desktop Navigation -->
             <nav class="hidden sm:flex gap-4 items-center">

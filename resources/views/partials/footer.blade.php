@@ -3,7 +3,7 @@
         <!-- Main Footer Content -->
         <div class="max-w-4xl mx-auto text-center mb-8">
             <div class="mb-6">
-                <h3 class="text-2xl font-bold text-white mb-2">🛸 Telegram Channel API</h3>
+                <h3 class="text-2xl font-bold text-white mb-2">🛸 Telegram Analytics API</h3>
                 <p class="text-gray-400 text-sm">
                     An unofficial Laravel-based API for retrieving Telegram channel information
                 </p>

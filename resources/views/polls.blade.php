@@ -1,34 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.visual')
 
 @section('title', 'Channel Polls - ' . ($channel ?? 'Telegram'))
 
-@push('styles')
+@push('page-styles')
 <style>
-    .loading {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 400px;
-    }
-    
-    .spinner {
-        border: 4px solid #f3f4f6;
-        border-top: 4px solid #3b82f6;
-        border-radius: 50%;
-        width: 48px;
-        height: 48px;
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .hidden {
-        display: none !important;
-    }
-    
     .poll-card {
         background: white;
         border: 1px solid #e5e7eb;
@@ -155,13 +130,13 @@
         position: fixed;
         inset: 0;
         background-color: rgba(0, 0, 0, 0.5);
-        z-index: 40;
+        z-index: 60;
     }
     
     .modal-container {
         position: fixed;
         inset: 0;
-        z-index: 50;
+        z-index: 70;
         overflow-y: auto;
         display: flex;
         align-items: center;
@@ -193,20 +168,7 @@
 </style>
 @endpush
 
-@section('content')
-<div class="container mx-auto px-4 py-8 max-w-5xl">
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-    </div>
-    
-    <div id="error" class="hidden">
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline" id="errorMessage"></span>
-        </div>
-    </div>
-    
-    <div id="content" class="hidden">
+@section('visual-content')
         <!-- Header with channel info -->
         <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg shadow-lg p-4 sm:p-6 mb-6 text-white">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -309,11 +271,9 @@
                 </button>
             </div>
         </div>
-    </div>
-</div>
 @endsection
 
-@push('scripts')
+@push('page-scripts')
 <script>
     const channel = '{{ $channel }}';
     const initialPeriod = '{{ $period }}';
