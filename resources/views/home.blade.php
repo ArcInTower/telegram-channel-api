@@ -21,6 +21,9 @@
                     <code class="block bg-white px-2 sm:px-4 py-3 rounded-lg text-xs text-gray-800 font-mono border border-gray-200 overflow-x-auto whitespace-nowrap">
                         GET /api/v2/telegram/channels/{channel}/statistics/{days}
                     </code>
+                    <code class="block bg-white px-2 sm:px-4 py-3 rounded-lg text-xs text-gray-800 font-mono border border-gray-200 overflow-x-auto whitespace-nowrap">
+                        GET /api/v2/telegram/channels/{channel}/polls
+                    </code>
                 </div>
                 <p class="text-center mt-4 text-sm text-gray-600">
                     Try them out below with interactive examples ↓
@@ -43,7 +46,7 @@
                 <div class="flex gap-4 mb-4 items-end">
                     <div class="flex-1 flex flex-col gap-2">
                         <label class="text-sm text-gray-600">Channel username</label>
-                        <input type="text" id="channelInput" placeholder="e.g., techNews" value="exampleChannel" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
+                        <input type="text" id="channelInput" placeholder="e.g., techNews" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
                     <button onclick="getLastMessage()" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transform hover:-translate-y-px transition-all whitespace-nowrap">Try it</button>
                 </div>
@@ -75,7 +78,7 @@
                 <div class="flex gap-4 mb-4 items-end">
                     <div class="flex-[2_2_0%] flex flex-col gap-2">
                         <label class="text-sm text-gray-600">Channel username</label>
-                        <input type="text" id="statsChannelInput" placeholder="e.g., techNews" value="exampleChannel" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
+                        <input type="text" id="statsChannelInput" placeholder="e.g., techNews" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
                     <div class="flex-1 flex flex-col gap-2">
                         <label class="text-sm text-gray-600">Days</label>
@@ -120,7 +123,7 @@
                 <div class="space-y-4 mb-6">
                     <div>
                         <label class="text-sm text-gray-600 mb-2 block">Channels to compare (comma separated)</label>
-                        <input type="text" id="compareChannelsInput" placeholder="e.g., newsChannel, techChannel, scienceHub" value="newsChannel, techChannel" 
+                        <input type="text" id="compareChannelsInput" placeholder="e.g., newsChannel, techChannel, scienceHub" 
                                class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-purple-500 transition-colors">
                     </div>
                     <div class="flex gap-4 items-end">
@@ -150,6 +153,54 @@
                     <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl -X POST "{{ url('/api/v2/telegram/channels/compare') }}" \
   -H "Content-Type: application/json" \
   -d '{"channels": ["newsChannel", "techChannel"], "days": 7}'</div>
+                </div>
+            </div>
+
+            <!-- Polls Card -->
+            <div class="bg-white border border-gray-200 rounded-xl p-10 shadow-md relative">
+                <div class="absolute top-4 right-4">
+                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+                        🆕 NEW
+                    </span>
+                </div>
+                
+                <h2 class="text-2xl font-semibold text-gray-800 mb-3 flex items-center gap-3">📊 Channel Polls</h2>
+                <p class="text-gray-600 mb-6">Retrieve polls and voting results from public Telegram channels</p>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-blue-700 text-sm m-0">✓ Rate limit: 60 requests per minute | ✓ Cache: 5 minutes TTL | ✓ Time-based filtering</p>
+                </div>
+                
+                <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-4">GET /api/v2/telegram/channels/{channel}/polls</div>
+                
+                <div class="flex gap-4 mb-4 items-end">
+                    <div class="flex-[2_2_0%] flex flex-col gap-2">
+                        <label class="text-sm text-gray-600">Channel username</label>
+                        <input type="text" id="pollsChannelInput" placeholder="e.g., techNews" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <div class="flex-1 flex flex-col gap-2">
+                        <label class="text-sm text-gray-600">Period</label>
+                        <select id="pollsPeriodInput" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors">
+                            <option value="1hour">Last hour</option>
+                            <option value="1day">Last 24 hours</option>
+                            <option value="7days" selected>Last 7 days</option>
+                            <option value="30days">Last 30 days</option>
+                            <option value="3months">Last 3 months</option>
+                        </select>
+                    </div>
+                    <button onclick="getChannelPolls()" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transform hover:-translate-y-px transition-all whitespace-nowrap">Try it</button>
+                </div>
+                
+                <div class="mt-4 text-right">
+                    <a href="#" onclick="viewVisualPolls(); return false;" class="text-blue-600 no-underline font-medium text-sm hover:text-blue-700">📊 View Visual Polls →</a>
+                </div>
+                
+                <div id="pollsResult" class="mt-6 p-6 rounded-xl font-mono text-sm overflow-x-auto hidden whitespace-pre leading-relaxed"></div>
+                
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-8">
+                    <h3 class="text-gray-800 text-lg font-semibold mb-4">🚀 Quick Start</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-2">Try with cURL:</p>
+                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-sm overflow-x-auto">curl "{{ url('/api/v2/telegram/channels/techNews/polls?period=7days') }}"</div>
                 </div>
             </div>
         </div>
@@ -566,6 +617,79 @@
             
             // Navigate to comparison page with pre-filled channels
             window.location.href = `/compare?${params.toString()}`;
+        }
+        
+        async function getChannelPolls() {
+            const channel = document.getElementById('pollsChannelInput').value.trim();
+            const period = document.getElementById('pollsPeriodInput').value;
+            
+            if (!channel) {
+                alert('Please enter a channel username');
+                return;
+            }
+            
+            showLoading('pollsResult');
+            
+            try {
+                const response = await fetch(`${API_BASE}/v2/telegram/channels/${encodeURIComponent(channel)}/polls?period=${period}`);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    showResult('pollsResult', {
+                        jsonapi: { version: '1.1' },
+                        errors: [{
+                            status: '401',
+                            title: 'Authentication Required',
+                            detail: '🔐 The bot has been disconnected from Telegram. Please contact the administrator to re-authenticate the bot.'
+                        }],
+                        meta: {
+                            timestamp: new Date().toISOString(),
+                            api_version: 'v2'
+                        }
+                    }, true);
+                    return;
+                }
+                
+                const data = await response.json();
+                showResult('pollsResult', data, !response.ok);
+            } catch (error) {
+                if (error.message.includes('JSON')) {
+                    showResult('pollsResult', {
+                        jsonapi: { version: '1.1' },
+                        errors: [{
+                            status: '401',
+                            title: 'Authentication Required',
+                            detail: '🔐 The bot has been disconnected from Telegram. Please contact the administrator to re-authenticate the bot.'
+                        }],
+                        meta: {
+                            timestamp: new Date().toISOString(),
+                            api_version: 'v2'
+                        }
+                    }, true);
+                } else {
+                    showResult('pollsResult', { error: error.message }, true);
+                }
+            }
+        }
+        
+        // Enter key support for polls
+        document.getElementById('pollsChannelInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') getChannelPolls();
+        });
+        
+        // View visual polls function
+        function viewVisualPolls() {
+            const channel = document.getElementById('pollsChannelInput').value.trim();
+            const period = document.getElementById('pollsPeriodInput').value || '7days';
+            
+            if (!channel) {
+                alert('Please enter a channel username');
+                return;
+            }
+            
+            // Navigate to visual polls page
+            window.location.href = `/polls/${encodeURIComponent(channel)}/${period}`;
         }
 </script>
 @endpush
