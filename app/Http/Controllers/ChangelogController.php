@@ -14,7 +14,7 @@ class ChangelogController extends Controller
                 'changes' => [
                     'Added' => [
                         'Reactions API endpoint: GET /api/v2/telegram/channels/{channel}/reactions',
-                        'Message reactions endpoint: GET /api/v2/telegram/channels/{channel}/messages/{messageId}/reactions',
+                        'Polls API endpoint: GET /api/v2/telegram/channels/{channel}/polls',
                         'Dynamic cache TTL based on period for better performance',
                     ],
                     'Changed' => [
@@ -36,7 +36,6 @@ class ChangelogController extends Controller
                         'Channel statistics endpoint: GET /api/v2/telegram/channels/{channel}/statistics/{days}',
                         'Channel info endpoint: GET /api/v2/telegram/channels/{channel}',
                         'Channel comparison endpoint: POST /api/v2/telegram/channels/compare',
-                        'Polls API endpoints: GET /api/v2/telegram/channels/{channel}/polls',
                     ],
                     'Changed' => [
                         'Statistics limited to 15 days maximum',

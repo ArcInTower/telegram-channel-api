@@ -80,10 +80,6 @@ Route::prefix('v2/telegram')->group(function () {
             ->name('v2.telegram.channel.reactions');
 
 
-        Route::get('/messages/{messageId}/reactions', [ReactionController::class, 'messageReactions'])
-            ->middleware($channelMiddleware)
-            ->where('messageId', '[0-9]+')
-            ->name('v2.telegram.channel.message.reactions');
     });
 
     // Compare multiple channels
