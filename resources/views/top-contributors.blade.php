@@ -1,6 +1,6 @@
 @extends('layouts.visual')
 
-@section('title', 'User Value Rankings - ' . ($channel ?? 'Telegram'))
+@section('title', 'Top Contributors - ' . ($channel ?? 'Telegram'))
 
 @push('page-styles')
 <style>
@@ -200,6 +200,30 @@
 @endpush
 
 @section('visual-content')
+    <!-- Beta Notice -->
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <h3 class="text-amber-900 font-semibold text-lg mb-2">🚧 Beta Feature - Algorithm Under Development</h3>
+        <p class="text-amber-800 text-sm mb-3">
+            This ranking system analyzes user engagement patterns to identify valuable community members. Parameters are being continuously adjusted for optimal results.
+        </p>
+        <details class="text-amber-700">
+            <summary class="cursor-pointer text-sm font-medium hover:text-amber-900">How are rankings calculated?</summary>
+            <div class="mt-3 text-sm space-y-2 text-gray-700">
+                <p>The algorithm considers 7 key metrics:</p>
+                <ul class="list-disc list-inside space-y-1 ml-4">
+                    <li><strong>Message Frequency</strong> - Optimal posting rate without spam</li>
+                    <li><strong>Engagement Received</strong> - Replies and reactions to messages</li>
+                    <li><strong>Content Quality</strong> - Message length and originality</li>
+                    <li><strong>Response Speed</strong> - Quick replies to others</li>
+                    <li><strong>Conversation Starter</strong> - Initiating new discussions</li>
+                    <li><strong>Consistency</strong> - Regular participation over time</li>
+                    <li><strong>Helpfulness</strong> - Quality of responses to others</li>
+                </ul>
+                <p class="mt-2">Each metric is weighted and combined to produce a final score from 0-100.</p>
+            </div>
+        </details>
+    </div>
+
     <!-- Header with channel info -->
     <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg shadow-lg p-4 sm:p-6 mb-6 text-white">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -214,58 +238,14 @@
         </div>
     </div>
     
-    <!-- Beta Notice & Explanation -->
-    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-        <div class="flex items-start gap-3">
-            <div class="flex-shrink-0">
-                <svg class="w-5 h-5 text-amber-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                </svg>
-            </div>
-            <div class="flex-1">
-                <h3 class="text-sm font-semibold text-amber-800 mb-1">Beta Feature - Algorithm Under Development</h3>
-                <p class="text-sm text-amber-700">This ranking system analyzes user engagement patterns to identify valuable community members. Parameters are being continuously adjusted for optimal results.</p>
-                
-                <details class="mt-3">
-                    <summary class="text-sm text-amber-600 hover:text-amber-700 cursor-pointer font-medium">How are rankings calculated?</summary>
-                    <div class="mt-2 space-y-2 text-sm text-amber-700">
-                        <p class="font-medium">The algorithm evaluates users based on:</p>
-                        <ul class="list-disc list-inside space-y-1 ml-2">
-                            <li><strong>Message Frequency (15%):</strong> Consistent participation without spamming</li>
-                            <li><strong>Engagement Received (25%):</strong> Replies and reactions from other users</li>
-                            <li><strong>Content Quality (20%):</strong> Message length and originality</li>
-                            <li><strong>Response Speed (10%):</strong> Quick helpful responses to others</li>
-                            <li><strong>Conversation Starter (15%):</strong> Initiating meaningful discussions</li>
-                            <li><strong>Consistency (10%):</strong> Regular participation over time</li>
-                            <li><strong>Helpfulness (5%):</strong> Providing useful responses</li>
-                        </ul>
-                        <p class="mt-2 text-xs italic">Note: Anonymous users are displayed with their anonymized usernames as configured by the channel administrator.</p>
-                    </div>
-                </details>
-            </div>
-        </div>
-    </div>
     
-    <!-- Days selector -->
-    <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Analysis Period</label>
-        <div class="flex items-center gap-3">
-            <input type="number" id="daysInput" min="1" max="365" value="{{ $days }}" 
-                   class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
-            <span class="text-gray-600">days</span>
-            <button id="updateDaysBtn" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
-                Update
-            </button>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">Choose between 1 and 365 days</p>
-    </div>
     
     <!-- Summary Cards -->
     <div id="summaryContainer" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8"></div>
     
     <!-- Top Users Table -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8" id="topUsersSection">
-        <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">User Value Rankings</h3>
+        <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">Top Contributors <span class="inline-flex items-center px-2 py-0.5 ml-2 rounded-full text-xs font-medium bg-amber-100 text-amber-800 align-middle">BETA</span></h3>
         <!-- Desktop Table -->
         <div class="hidden sm:block overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -329,26 +309,11 @@
         loadUserValues();
         
         // Event listeners
-        const updateBtn = document.getElementById('updateDaysBtn');
-        const daysInput = document.getElementById('daysInput');
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         
-        if (updateBtn) updateBtn.addEventListener('click', updateDays);
-        if (daysInput) daysInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') updateDays();
-        });
         if (loadMoreBtn) loadMoreBtn.addEventListener('click', loadMore);
     });
     
-    function updateDays() {
-        const newDays = parseInt(document.getElementById('daysInput').value);
-        if (newDays >= 1 && newDays <= 365 && newDays !== currentDays) {
-            currentDays = newDays;
-            window.history.pushState({}, '', `/telegram/${channel}/top-contributors/${currentDays}`);
-            document.getElementById('daysText').textContent = currentDays;
-            loadUserValues();
-        }
-    }
     
     async function loadUserValues(offset = null) {
         if (isLoading) return;
