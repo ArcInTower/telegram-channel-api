@@ -1,45 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.visual')
 
 @section('title', 'Channel Statistics - ' . ($channel ?? 'Telegram'))
 
-@push('styles')
+@push('page-styles')
 <style>
-    .loading {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 400px;
-    }
-    
-    .spinner {
-        border: 4px solid #f3f4f6;
-        border-top: 4px solid #3b82f6;
-        border-radius: 50%;
-        width: 48px;
-        height: 48px;
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
+    /* Page specific styles */
 </style>
 @endpush
 
-@section('content')
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-        </div>
-        
-        <div id="error" class="hidden mt-8">
-            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <strong class="font-bold">Error!</strong>
-                <span class="block sm:inline" id="errorMessage"></span>
-            </div>
-        </div>
-        
-        <div id="content" class="hidden mt-8">
+@section('visual-content')
             <!-- Header with channel info -->
             <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg shadow-lg p-4 sm:p-6 mb-6 text-white">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -123,10 +92,9 @@
                     <p class="text-sm text-gray-600 mt-3 bg-emerald-50 rounded p-2" id="peakDay"></p>
                 </div>
             </div>
-        </div>
 @endsection
 
-@push('scripts')
+@push('page-scripts')
     @vite('resources/js/statistics.js')
     <script>
         // Wait for Chart.js to be loaded
@@ -272,9 +240,8 @@
                 const data = result.data;
                 const stats = data.attributes.statistics;
                 
-                // Hide loading, show content
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').classList.remove('hidden');
+                // Show content
+                showContent();
                 
                 // Update header
                 document.getElementById('channelName').textContent = '@' + data.id;
