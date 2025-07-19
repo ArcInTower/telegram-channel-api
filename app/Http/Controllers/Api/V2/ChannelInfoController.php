@@ -34,9 +34,7 @@ class ChannelInfoController extends Controller
             ]));
 
         } catch (\Exception $e) {
-            Log::error('Error in V2 getChannelInfo: ' . $e->getMessage());
-
-            return (new ErrorResponse('Internal server error', 500))->toResponse();
+            return $this->handleTelegramException($e, 'V2 getChannelInfo');
         }
     }
 }

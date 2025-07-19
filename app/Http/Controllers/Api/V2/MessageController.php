@@ -39,19 +39,8 @@ class MessageController extends Controller
                 '_cache_meta' => $cacheMetadata,
             ]);
 
-        } catch (\RuntimeException $e) {
-            Log::error('Error in V2 getLastMessageId: ' . $e->getMessage());
-
-            // Check if it's an authentication error
-            if (str_contains($e->getMessage(), 'authentication required')) {
-                return (new ErrorResponse($e->getMessage(), 401))->toResponse();
-            }
-
-            return (new ErrorResponse('Internal server error', 500))->toResponse();
         } catch (\Exception $e) {
-            Log::error('Error in V2 getLastMessageId: ' . $e->getMessage());
-
-            return (new ErrorResponse('Internal server error', 500))->toResponse();
+            return $this->handleTelegramException($e, 'V2 getLastMessageId');
         }
     }
 }

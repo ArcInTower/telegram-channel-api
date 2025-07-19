@@ -54,6 +54,11 @@ class TelegramController extends Controller
         } catch (\Exception $e) {
             Log::error('Error in getLastMessageId: ' . $e->getMessage());
 
+            // Check for authentication errors using parent method
+            if ($this->isAuthenticationError($e)) {
+                return $this->errorResponse('Authentication required. Please re-authenticate with Telegram.', 401);
+            }
+
             return $this->errorResponse('Internal server error', 500);
         }
     }

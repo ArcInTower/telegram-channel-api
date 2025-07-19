@@ -64,10 +64,18 @@ class CompareController extends Controller
                         ];
                     }
                 } catch (\Exception $e) {
-                    $errors[] = [
-                        'channel' => $channel,
-                        'error' => 'Failed to fetch statistics',
-                    ];
+                    // Check for authentication errors
+                    if ($this->isAuthenticationError($e)) {
+                        $errors[] = [
+                            'channel' => $channel,
+                            'error' => 'Authentication required',
+                        ];
+                    } else {
+                        $errors[] = [
+                            'channel' => $channel,
+                            'error' => 'Failed to fetch statistics',
+                        ];
+                    }
                 }
             }
 
@@ -85,9 +93,7 @@ class CompareController extends Controller
                 ->header('X-API-Beta', 'This endpoint is experimental and may change without notice');
 
         } catch (\Exception $e) {
-            Log::error('Error in compareChannels: ' . $e->getMessage());
-
-            return (new ErrorResponse('Internal server error', 500))->toResponse();
+            return $this->handleTelegramException($e, 'compareChannels');
         }
     }
 }
