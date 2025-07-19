@@ -25,4 +25,9 @@ interface TelegramApiInterface
      * Check if environment is restricted
      */
     public function isRestrictedEnvironment(): bool;
+
+    /**
+     * Get a single message by ID
+     */
+    public function getMessage(string $channelUsername, int $messageId): ?array;
 }

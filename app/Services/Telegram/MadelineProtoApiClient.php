@@ -181,6 +181,9 @@ class MadelineProtoApiClient implements TelegramApiInterface
     public function getChannelInfo(string $channelUsername): ?array
     {
         try {
+            // Security validation first
+            $this->validateChannelSecurity($channelUsername);
+            
             $channelUsername = '@' . ltrim($channelUsername, '@');
             $api = $this->getApiInstance();
 
@@ -255,6 +258,9 @@ class MadelineProtoApiClient implements TelegramApiInterface
     public function getMessagesHistory(string $channelUsername, array $params = []): ?array
     {
         try {
+            // Security validation first
+            $this->validateChannelSecurity($channelUsername);
+            
             $channelUsername = '@' . ltrim($channelUsername, '@');
             $api = $this->getApiInstance();
 
@@ -274,7 +280,11 @@ class MadelineProtoApiClient implements TelegramApiInterface
             return $api->messages->getHistory($params);
 
         } catch (\Exception $e) {
-            Log::error('Error getting messages history: ' . $e->getMessage());
+            Log::error('Error getting messages history: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             $this->handleApiError($e);
 
             return null;
@@ -319,5 +329,118 @@ class MadelineProtoApiClient implements TelegramApiInterface
         }
 
         return false;
+    }
+
+    /**
+     * Validate channel security to prevent access to private chats
+     */
+    private function validateChannelSecurity(string $channel): void
+    {
+        // Remove @ if present for validation
+        $cleanChannel = ltrim($channel, '@');
+        
+        // 1. Reject numeric IDs completely
+        if (is_numeric($cleanChannel) || is_numeric(str_replace('-', '', $cleanChannel))) {
+            Log::warning('Security: Attempted to access numeric channel ID', [
+                'channel' => $channel,
+                'ip' => request()->ip()
+            ]);
+            throw new \Exception('Access denied: Numeric channel IDs are not allowed');
+        }
+        
+        // 2. Only allow proper username format (alphanumeric and underscore)
+        if (!preg_match('/^[a-zA-Z0-9_]{4,32}$/', $cleanChannel)) {
+            Log::warning('Security: Invalid channel format attempted', [
+                'channel' => $channel,
+                'ip' => request()->ip()
+            ]);
+            throw new \Exception('Invalid channel format. Only public channel usernames are allowed');
+        }
+        
+        // 3. Reject dangerous keywords
+        $dangerousKeywords = [
+            'self', 'me', 'saved', 'private', 'bot', 'botfather', 
+            'telegram', 'service', 'support', '777000', 'settings',
+            'channel_bot', 'group', 'gigagroup', 'basicgroup'
+        ];
+        
+        if (in_array(strtolower($cleanChannel), $dangerousKeywords)) {
+            Log::warning('Security: Dangerous keyword in channel name', [
+                'channel' => $channel,
+                'ip' => request()->ip()
+            ]);
+            throw new \Exception('Access denied: Reserved channel names are not allowed');
+        }
+        
+        // 4. Reject path traversal attempts
+        if (preg_match('/\.\.[\/\\\\]|[\/\\\\]\.\./', $channel)) {
+            Log::warning('Security: Path traversal attempt', [
+                'channel' => $channel,
+                'ip' => request()->ip()
+            ]);
+            throw new \Exception('Access denied: Invalid channel name');
+        }
+        
+        // 5. Reject encoded or special characters
+        if ($channel !== htmlspecialchars($channel, ENT_QUOTES, 'UTF-8')) {
+            Log::warning('Security: Encoded characters in channel name', [
+                'channel' => $channel,
+                'ip' => request()->ip()
+            ]);
+            throw new \Exception('Access denied: Invalid characters in channel name');
+        }
+        
+        // 6. Length validation
+        if (strlen($cleanChannel) < 4 || strlen($cleanChannel) > 32) {
+            throw new \Exception('Channel username must be between 4 and 32 characters');
+        }
+    }
+
+    public function getMessage(string $channelUsername, int $messageId): ?array
+    {
+        try {
+            // Security validation first
+            $this->validateChannelSecurity($channelUsername);
+            
+            // Validate message ID
+            if ($messageId <= 0 || $messageId > PHP_INT_MAX) {
+                throw new \Exception('Invalid message ID');
+            }
+            
+            $channelUsername = '@' . ltrim($channelUsername, '@');
+            $api = $this->getApiInstance();
+
+            // Get channel peer
+            $channelInfo = $api->getInfo($channelUsername);
+            
+            // Get messages by ID
+            $messages = $api->messages->getMessages([
+                'id' => [[
+                    '_' => 'inputMessageID',
+                    'id' => $messageId
+                ]]
+            ]);
+
+            if (!empty($messages['messages']) && count($messages['messages']) > 0) {
+                $message = $messages['messages'][0];
+                
+                // Return null for empty messages
+                if ($message['_'] === 'messageEmpty') {
+                    return null;
+                }
+                
+                return $message;
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Error getting message: ' . $e->getMessage(), [
+                'channel' => $channelUsername,
+                'message_id' => $messageId
+            ]);
+            
+            $this->handleApiError($e);
+            return null;
+        }
     }
 }
