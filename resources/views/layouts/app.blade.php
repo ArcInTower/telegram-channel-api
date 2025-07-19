@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <title>@yield('title', 'Telegram Channel API - Get Channel Data & Statistics')</title>
+    <title>@yield('title', 'Telegram Analytics API - Get Channel Data & Statistics')</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -22,7 +22,7 @@
 <body class="font-sans antialiased bg-gray-50 min-h-screen flex flex-col">
     @include('partials.header')
 
-    <main class="max-w-6xl mx-auto px-4 flex-1">
+    <main class="max-w-6xl mx-auto pl-2 pr-4 sm:px-4 flex-1">
         @if(session('success'))
             <div class="mt-6 mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
                 <div class="flex items-start">
