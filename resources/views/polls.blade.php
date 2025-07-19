@@ -560,11 +560,6 @@
                         <div class="poll-option" style="background: #f9fafb; border: 1px solid #e5e7eb;">
                             <div class="poll-option-content">
                                 <span class="font-medium">${escapeHtml(answer.text)}</span>
-                                <span class="text-sm text-gray-400">
-                                    <a href="#" onclick="showHowToViewResults(); return false;" class="hover:text-gray-600">
-                                        Results hidden ℹ️
-                                    </a>
-                                </span>
                             </div>
                         </div>
                     `;
@@ -584,15 +579,54 @@
             badges += '<span class="poll-badge">Multiple Choice</span>';
         }
         
-        // Check if we can see results
-        if (!resultsVisible && !poll.closed) {
-            badges += '<span class="poll-badge" style="background: #fef3c7; color: #92400e;">⚠️ Results hidden</span>';
+        
+        // Add forwarded info if present
+        let forwardedHtml = '';
+        if (poll.forwarded_info && poll.forwarded_info.is_forwarded) {
+            const originalDate = poll.forwarded_info.original_date ? formatDate(poll.forwarded_info.original_date) : 'Unknown date';
+            let sourceInfo = '';
+            
+            forwardedHtml = `
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                    <p class="text-sm text-amber-800">
+                        <strong>↪️ Forwarded poll</strong><br>
+                        Original date: ${originalDate}
+                    </p>
+                </div>
+            `;
         }
+        
+        // Add results hidden indicator to question title if needed
+        const questionTitle = escapeHtml(poll.question || 'No question');
+        
+        // Add results hidden notice if applicable
+        const resultsHiddenNotice = (!resultsVisible && !poll.closed) ? `
+            <div class="bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-orange-300 rounded-lg p-4 mt-3 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm">
+                            <strong class="text-orange-900 text-base">Results are hidden for this poll</strong><br>
+                            <span class="text-orange-800">Only the poll creator can see results until the poll is closed or public voting is enabled.</span>
+                            <a href="#" onclick="showHowToViewResults(); return false;" 
+                               class="inline-block mt-1 px-3 py-1 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors text-sm font-medium">
+                                Learn more →
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        ` : '';
         
         card.innerHTML = `
             <div class="mb-4">
-                <h3 class="text-lg font-semibold mb-3">${escapeHtml(poll.question || 'No question')}</h3>
+                <h3 class="text-lg font-semibold mb-3">${questionTitle}</h3>
                 ${optionsHtml}
+                ${resultsHiddenNotice}
             </div>
             <div class="poll-meta">
                 <span>📊 ${poll.total_voters || 0} votes</span>
@@ -604,6 +638,7 @@
                 </span>
             </div>
             ${badges ? `<div class="mt-3">${badges}</div>` : ''}
+            ${forwardedHtml}
             ${poll.message_text ? `<div class="mt-3 text-sm text-gray-600 italic">${escapeHtml(poll.message_text.substring(0, 100))}...</div>` : ''}
         `;
         

@@ -135,20 +135,8 @@ class PollService extends CacheableService
         $indexCacheKey = "poll_index_{$channelUsername}";
         $cachedIndex = Cache::get($indexCacheKey, []);
         
-        // First, check cached polls
-        foreach ($cachedIndex as $pollData) {
-            if ($pollData['date'] >= $cutoffDate->timestamp) {
-                $polls[] = $pollData;
-                if (count($polls) >= $limit) {
-                    return [
-                        'polls' => array_slice($polls, 0, $limit),
-                        'total' => count($polls),
-                        'messages_scanned' => 0,
-                        'scan_completed' => true
-                    ];
-                }
-            }
-        }
+        // Note: The cached index only contains message IDs and dates for reference
+        // We don't use it to populate the polls array as it doesn't contain full poll data
         
         // Fetch new messages to find more polls
         $iterations = 0;
@@ -320,6 +308,82 @@ class PollService extends CacheableService
             $resultsVisible = false;
         }
         
+        // Check if message is forwarded
+        $forwardedInfo = null;
+        if (isset($message['fwd_from'])) {
+            $forwardedInfo = [
+                'is_forwarded' => true,
+                'original_date' => null,
+                'from_name' => null,
+                'from_id' => null,
+                'from_type' => null,
+                'from_username' => null
+            ];
+            
+            // Get original date
+            if (isset($message['fwd_from']['date'])) {
+                $forwardedInfo['original_date'] = Carbon::createFromTimestamp($message['fwd_from']['date'])->toIso8601String();
+            }
+            
+            // Get source information
+            if (isset($message['fwd_from']['from_id'])) {
+                $fromId = $message['fwd_from']['from_id'];
+                
+                // Determine if it's a channel or user ID
+                // In MadelineProto, channel IDs are typically larger numbers
+                if (is_numeric($fromId)) {
+                    // Channel IDs in Telegram are typically > 1000000000
+                    if ($fromId > 1000000000) {
+                        $forwardedInfo['from_id'] = $fromId;
+                        $forwardedInfo['from_type'] = 'channel';
+                    } else {
+                        $forwardedInfo['from_id'] = $fromId;
+                        $forwardedInfo['from_type'] = 'user';
+                    }
+                }
+            }
+            
+            // Get channel/user name if available
+            if (isset($message['fwd_from']['from_name'])) {
+                $forwardedInfo['from_name'] = $message['fwd_from']['from_name'];
+            }
+            
+            // Post author (for channels with signatures)
+            if (isset($message['fwd_from']['post_author'])) {
+                $forwardedInfo['post_author'] = $message['fwd_from']['post_author'];
+            }
+            
+            // Try to get channel username for creating links
+            if ($forwardedInfo['from_type'] === 'channel' && $forwardedInfo['from_id']) {
+                try {
+                    // Get channel info to retrieve username
+                    $channelInfo = $this->telegramClient->getInfo($forwardedInfo['from_id']);
+                    
+                    if ($channelInfo) {
+                        // Check for username in different possible locations
+                        $username = null;
+                        if (isset($channelInfo['Chat']['username'])) {
+                            $username = $channelInfo['Chat']['username'];
+                        } elseif (isset($channelInfo['User']['username'])) {
+                            $username = $channelInfo['User']['username'];
+                        } elseif (isset($channelInfo['username'])) {
+                            $username = $channelInfo['username'];
+                        }
+                        
+                        if ($username) {
+                            $forwardedInfo['from_username'] = $username;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // If we can't get the channel info, just log and continue
+                    Log::debug('Could not fetch channel info for forwarded poll', [
+                        'channel_id' => $forwardedInfo['from_id'],
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
+        
         return [
             'message_id' => $message['id'],
             'date' => Carbon::createFromTimestamp($message['date'])->toIso8601String(),
@@ -331,7 +395,8 @@ class PollService extends CacheableService
             'answers' => $answers,
             'total_voters' => $results['total_voters'] ?? 0,
             'message_text' => mb_substr($message['message'] ?? '', 0, 200),
-            'results_visible' => $resultsVisible
+            'results_visible' => $resultsVisible,
+            'forwarded_info' => $forwardedInfo
         ];
     }
 

@@ -30,4 +30,12 @@ interface TelegramApiInterface
      * Get a single message by ID
      */
     public function getMessage(string $channelUsername, int $messageId): ?array;
+    
+    /**
+     * Get information about a channel or user by ID
+     *
+     * @param string|int $peer Channel ID, user ID, or username
+     * @return array|null
+     */
+    public function getInfo($peer): ?array;
 }

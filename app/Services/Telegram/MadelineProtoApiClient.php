@@ -255,6 +255,20 @@ class MadelineProtoApiClient implements TelegramApiInterface
         }
     }
 
+    public function getInfo($peer): ?array
+    {
+        try {
+            $api = $this->getApiInstance();
+            return $api->getInfo($peer);
+        } catch (\Exception $e) {
+            Log::debug('Error getting peer info', [
+                'peer' => $peer,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
     public function getMessagesHistory(string $channelUsername, array $params = []): ?array
     {
         try {
