@@ -204,7 +204,7 @@
     <div class="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg shadow-lg p-4 sm:p-6 mb-6 text-white">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <h2 class="text-2xl sm:text-3xl font-bold">@<span id="channelName">{{ $channel }}</span></h2>
+                <h2 class="text-2xl sm:text-3xl font-bold">@<span id="channelName">{{ e($channel) }}</span></h2>
                 <p class="text-blue-100 mt-1 text-sm sm:text-base">User rankings for the last <span id="daysText" class="font-semibold">{{ $days }}</span> days</p>
             </div>
             <div class="sm:text-right">
