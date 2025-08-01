@@ -130,4 +130,96 @@ class MessageService extends CacheableService
 
         return $this->getCacheMetadata($cacheKey, $this->cacheTtl);
     }
+
+    /**
+     * Get messages from a channel within a date range
+     */
+    public function getMessagesByDateRange(string $channelUsername, \Carbon\Carbon $fromDate, \Carbon\Carbon $toDate, int $limit = 100): ?array
+    {
+        $channelUsername = $this->normalizeUsername($channelUsername);
+        $channelUsername = '@' . ltrim($channelUsername, '@');
+
+        try {
+            Log::info("Fetching messages for channel {$channelUsername} from {$fromDate} to {$toDate}");
+
+            // Verify channel exists and is accessible
+            $info = $this->apiClient->getChannelInfo($channelUsername);
+            if ($info && !in_array($info['type'], ['channel', 'supergroup'])) {
+                Log::warning("Not a public channel: {$channelUsername}");
+                return null;
+            }
+
+            $allMessages = [];
+            $offsetId = 0;
+            $foundOldMessage = false;
+            
+            // Convert dates to timestamps
+            $fromTimestamp = $fromDate->timestamp;
+            $toTimestamp = $toDate->timestamp;
+
+            while (count($allMessages) < $limit && !$foundOldMessage) {
+                // Fetch messages in batches
+                $params = [
+                    'limit' => min(100, $limit - count($allMessages)),
+                    'offset_id' => $offsetId,
+                ];
+
+                $messages = $this->apiClient->getMessagesHistory($channelUsername, $params);
+
+                if (empty($messages['messages'])) {
+                    break;
+                }
+
+                foreach ($messages['messages'] as $message) {
+                    // Skip if message doesn't have a date
+                    if (!isset($message['date'])) {
+                        continue;
+                    }
+
+                    $messageTimestamp = $message['date'];
+
+                    // If message is older than our range, stop searching
+                    if ($messageTimestamp < $fromTimestamp) {
+                        $foundOldMessage = true;
+                        break;
+                    }
+
+                    // If message is within our date range, add it
+                    if ($messageTimestamp >= $fromTimestamp && $messageTimestamp <= $toTimestamp) {
+                        $allMessages[] = $message;
+                        
+                        if (count($allMessages) >= $limit) {
+                            break;
+                        }
+                    }
+
+                    // Update offset for next iteration
+                    $offsetId = $message['id'];
+                }
+
+                // If we've processed all messages in this batch but haven't found old messages yet
+                if (!$foundOldMessage && !empty($messages['messages'])) {
+                    $lastMessage = end($messages['messages']);
+                    $offsetId = $lastMessage['id'];
+                }
+            }
+
+            Log::info("Found " . count($allMessages) . " messages in date range for channel: {$channelUsername}");
+
+            return $allMessages;
+
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+
+            // Check for authentication errors
+            if (str_contains($message, 'AUTH_KEY_UNREGISTERED') ||
+                str_contains($message, 'SESSION_REVOKED') ||
+                str_contains($message, 'LOGIN_REQUIRED')) {
+                throw new \RuntimeException('Telegram authentication required. The bot session has expired or been revoked.');
+            }
+
+            Log::error("Error fetching messages for channel {$channelUsername}: " . $message);
+            throw $e;
+        }
+    }
 }

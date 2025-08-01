@@ -147,6 +147,15 @@ class MadelineProtoApiClient implements TelegramApiInterface
         if ($isRestricted) {
             $this->configureRestrictedSettings($settings);
         }
+        
+        // Configure logger to suppress output when requested
+        if (getenv('MADELINE_SUPPRESS_LOGS') === 'true') {
+            $logger = new \danog\MadelineProto\Settings\Logger;
+            $logger->setType(Logger::LOGGER_FILE);
+            $logger->setExtra(storage_path('logs/madeline_silent.log'));
+            $logger->setLevel(Logger::ULTRA_VERBOSE);
+            $settings->setLogger($logger);
+        }
 
         return $settings;
     }
