@@ -377,4 +377,81 @@ class MessageService extends CacheableService
             throw $e;
         }
     }
+
+    /**
+     * Send a reaction to a message
+     */
+    public function sendReaction(string $channelUsername, int $messageId, string $reaction, bool $big = false): bool
+    {
+        $channelUsername = $this->normalizeUsername($channelUsername);
+        $channelUsername = '@' . ltrim($channelUsername, '@');
+
+        try {
+            Log::info("Sending reaction to message {$messageId} in channel {$channelUsername}");
+
+            // Get the API instance
+            $api = $this->apiClient->getApiInstance();
+
+            // Prepare reaction
+            $reactionEmoticon = null;
+            if ($reaction !== 'remove' && $reaction !== 'none') {
+                $reactionEmoticon = [
+                    '_' => 'reactionEmoji',
+                    'emoticon' => $reaction
+                ];
+            }
+
+            // Send the reaction
+            $params = [
+                'peer' => $channelUsername,
+                'msg_id' => $messageId,
+                'big' => $big
+            ];
+
+            if ($reactionEmoticon) {
+                $params['reaction'] = [$reactionEmoticon];
+            } else {
+                $params['reaction'] = []; // Empty array removes reaction
+            }
+
+            $result = $api->messages->sendReaction($params);
+
+            if ($result) {
+                Log::info("Reaction sent successfully to message {$messageId}");
+                return true;
+            }
+
+            return false;
+
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+
+            // Check for specific errors
+            if (str_contains($message, 'MESSAGE_NOT_MODIFIED')) {
+                // Reaction is already the same
+                return true;
+            }
+
+            if (str_contains($message, 'MESSAGE_ID_INVALID')) {
+                throw new \RuntimeException('Invalid message ID or message not found');
+            }
+
+            if (str_contains($message, 'REACTION_INVALID')) {
+                throw new \RuntimeException('Invalid reaction emoji');
+            }
+
+            if (str_contains($message, 'CHANNEL_INVALID')) {
+                throw new \RuntimeException('Invalid channel or you are not a member');
+            }
+
+            if (str_contains($message, 'AUTH_KEY_UNREGISTERED') ||
+                str_contains($message, 'SESSION_REVOKED') ||
+                str_contains($message, 'LOGIN_REQUIRED')) {
+                throw new \RuntimeException('Telegram authentication required. The bot session has expired or been revoked.');
+            }
+
+            Log::error("Error sending reaction to message {$messageId}: " . $message);
+            throw $e;
+        }
+    }
 }
